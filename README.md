@@ -1,25 +1,56 @@
-# SCI BLUE OCEAN — IMMOBILIER DE PRESTIGE, RÉSIDENCES MEUBLÉES & HOSPITALITY OS
-## *"Plus qu'un bien, une valeur sûre."*
+# SCI BLUE OCEAN · HOTEL OS — Interactive Demo
 
-> **Repository:** https://github.com/mycustomid/sciblueocean  
-> **Official Brand:** SCI Blue Ocean (`https://sciblueocean.com`)  
-> **Flagship Property:** La Résidence Miague – Bonapriso, Douala & Siège Rue CEPER, Djoungolo, Yaoundé (Cameroun)  
-> **Contacts:** `+237 672 654 253` / `+237 696 006 021`  
-> **Mandatory Stack:** **Astro 5 (`astro` + `@tailwindcss/vite` v4 + `@astrojs/react` Islands)**  
+**Purpose:** a fictional hotel/property-management dashboard prototype, **not** an operational hotel system. The public luxury/La Roseraie site has **not** been modified. This is an independent replacement concept for the hotel management experience.
 
----
+## Open immediately — no dependencies
 
-## 👑 ARCHITECTURAL MANDATE: ASTRO 5 IS KING
+Open `standalone/index.html` in a browser. It uses bundled CSS and JavaScript only. All demo changes persist in the browser's `localStorage` (same browser/profile only). For best results, host `standalone/` over an HTTP server, e.g. `python -m http.server 8080 -d standalone` and visit `http://localhost:8080`.
 
-1. **Framework**: Strictly **Astro 5** (`src/pages/*.astro`) with **Tailwind CSS v4** and React Islands (`client:load` / `client:visible`) for interactive modules.
-2. **Official Brand Assets Ready in Repo**:
-   - `/brand/logo-main.png` (Official SCI Blue Ocean high-res transparent logo)
-   - `/brand/logo-icon.png` (Official SCI Blue Ocean emblem/favicon)
-3. **Dual System Scope**:
-   - **Phase 1 — Luxury Real Estate & Furnished Residence Showcase**:
-     - Flagship showcase for **La Résidence Miague – Bonapriso (Douala)** & **Projets Yaoundé (Rue CEPER)**.
-     - Furnished luxury suites & apartments (court, moyen et long séjour), real estate development (promotion immobilière, lotissement, BTP), and wealth advisory.
-     - Direct WhatsApp & reservation booking engine in **FCFA (XAF)** with **FR / EN** bilingual support.
-   - **Phase 2 — Blue Ocean Property & Hotel Management Dashboard (`BlueOcean OS`)**:
-     - Multi-property inventory manager (Suites & Appartements Meublés Bonapriso Douala + Yaoundé).
-     - Short/medium/long-stay booking calendar, tenant lease tracker, maintenance & housekeeping status, and FCFA (XAF) invoicing.
+## Astro 5 project
+
+```bash
+npm install
+npm run dev
+npm run build
+```
+
+Uses Astro 5 + Tailwind v4 Vite plugin; zero React hydration needed. Astro's page uses accessible semantic HTML and plain JavaScript for the interactive dashboard. Styling is custom CSS so the no-install standalone build works too.
+
+## Roles (UI simulations, not authentication)
+
+- **Direction:** overview, rooms, reservations, calendar, guests, invoices, housekeeping, operations, reports, settings.
+- **Réception:** overview, rooms, reservations, calendar, guests, invoices and housekeeping (no operations/reporting/settings).
+- **Gouvernante:** overview, rooms, calendar, housekeeping and operations; changes are limited to room/housekeeping actions.
+- **Comptabilité:** overview, reservations, calendar, invoices, reports; handles payment tracking and printing.
+
+Role switching *does not authenticate or protect data*. Don't enter real PII. Do not deploy with guest information or public admin exposure.
+
+## Features
+
+- 24 fictional rooms; rooms dashboard and status workflow
+- Create reservations with date and room availability checking; check-in, check-out and cancel
+- Calendar with month navigation, arrival/reservation filter
+- Fictional guest directory; filter and add guest with basic validation
+- Quote/proforma builder with optional **sample** TVA at 19.25%, deposits/payments, print-to-PDF layout
+- Housekeeping checklist and operations status controls
+- Derived dashboard KPIs; basic chart; CSV/JSON exports; reset demo state
+- French-first, 1-click English toggle; mobile sidebar/drawer; accessible labels and status feedback
+- Data persists only in localStorage; no network calls and no real access control
+
+## Explicit limitations
+
+Not a true PMS, no server authentication, booking engine, payment processor, database, audit-compliant logs, multi-user sync, verified tax compliance, accounting exports or live room/operations monitoring. All hotel data, counts, identities, prices and performance metrics are fictitious. The identity SCI BLUE OCEAN is used **only as a proposed project label**, not confirmation the company operates a specific hotel. `sciblueocean.com` was not available for reliable visual/content extraction at build time. The wave emblem is original placeholder artwork.
+
+The 19.25% VAT setting is a UI example, not an opinion on which tax regime applies. Obtain approval from a Cameroon tax/accounting professional before using any real invoice.
+
+## QA checklist
+
+- Run `node --check public/app.js`, `npm run build` after dependencies are installed
+- Test roles, FR/EN, and 390px mobile navigation
+- Test reservation conflict, cancel and room statuses
+- Test print preview, JSON/CSV download, reset and reload persistence
+- Browser E2E tests in `tests/smoke.py` (optional, requires Python Playwright)
+
+## Deployment safety
+
+**DEMO ONLY** prominently displayed. For production add server-side authentication, RBAC, audited APIs, database with transactions/double-booking constraint, user isolation, backups, financial/legal configuration, observability, and security tests. Merely hiding UI is not protection.

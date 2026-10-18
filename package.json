@@ -1,21 +1,16 @@
 {
   "name": "sciblueocean",
-  "type": "module",
-  "version": "1.0.0",
   "private": true,
+  "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro dev --host 0.0.0.0",
     "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "preview": "astro preview --host 0.0.0.0"
   },
   "dependencies": {
-    "@astrojs/react": "^4.2.1",
-    "@tailwindcss/vite": "^4.0.14",
-    "astro": "^5.5.2",
-    "lucide-react": "^0.487.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwindcss": "^4.0.14"
+    "astro": "^5.16.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "tailwindcss": "^4.1.0"
   }
 }
