@@ -3,51 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#102a38" />
+  <meta name="theme-color" content="#0b2030" />
   <meta name="robots" content="noindex, nofollow" />
-  <meta name="description" content="SCI Blue Ocean Hotel OS — démonstration interactive de gestion hôtelière. Données entièrement fictives." />
-  <title>SCI Blue Ocean — Hotel OS · Démonstration</title>
+  <meta name="description" content="Blue Line Capital Group & SCI Blue Ocean — Suite ERP Multi-Filiales (9 Produits) avec Flowchart Start-to-End et Terminaux par Rôle." />
+  <title>Blue Line Capital Group · Suite ERP 9 Produits & Portail Multi-Postes</title>
   <link rel="icon" type="image/png" href="./brand/logo-icon.png" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   <link rel="stylesheet" href="./styles.css" />
   <script src="./app.js" defer></script>
 </head>
 <body>
+  <div id="loginGate" class="login-gate" hidden></div>
+
   <div class="app-shell" id="appShell">
     <aside class="sidebar" id="sidebar" aria-label="Navigation principale">
-      <a class="brand" href="#overview" aria-label="SCI Blue Ocean Hotel OS — Accueil">
+      <a class="brand" href="#overview" data-action="open-login-gate" aria-label="Blue Line Capital ERP — Portail des 9 Produits">
         <span class="brand-symbol" aria-hidden="true"><img src="./brand/logo-main.png" alt="" class="brand-logo" width="112" height="57" /></span>
-        <span class="brand-copy"><strong>SCI BLUE OCEAN</strong><small>HOSPITALITY OPERATIONS</small></span>
+        <span class="brand-copy"><strong id="sidebarBrandTitle">BLUE LINE ERP</strong><small id="sidebarTerminalName">9-PRODUCT ENTERPRISE OS</small></span>
       </a>
-      <div class="workspace-label"><span class="presence-dot"></span> <span data-i18n="workspace">Espace de travail</span><span class="edition">DEMO</span></div>
-      <nav id="mainNav" class="nav-stack" aria-label="Sections"></nav>
+
+      <div class="sidebar-product-box">
+        <label class="sidebar-product-label" for="productSelect">FILIALE / PRODUIT ACTIF (1–9)</label>
+        <select id="productSelect" class="sidebar-product-select" aria-label="Choisir l'un des 9 produits Blue Line Capital"></select>
+        <div class="sidebar-repo-tag" id="sidebarRepoTag">GitHub: OCA/vertical-hotel</div>
+      </div>
+
+      <div class="workspace-label">
+        <span class="presence-dot"></span>
+        <span id="activeStaffBadge" data-i18n="workspace">Poste actif</span>
+        <span class="edition" id="activeRoleCode">STEP 1</span>
+      </div>
+
+      <nav id="mainNav" class="nav-stack" aria-label="Sections du poste"></nav>
+
       <div class="sidebar-bottom">
-        <div class="demo-note"><span class="demo-note-icon" aria-hidden="true">✳</span><strong data-i18n="sandbox">Environnement de démonstration</strong><p data-i18n="sandboxDesc">Données fictives · aucune transaction réelle</p></div>
-        <div class="sidebar-footer"><span>BLUE OCEAN / OS</span><span>v1.0</span></div>
+        <button type="button" class="terminal-switch-btn" data-action="open-login-gate">
+          <span class="terminal-switch-icon">⇄</span>
+          <span>
+            <strong id="switchBtnTitle">Portail 9 Produits & Postes</strong>
+            <small id="switchBtnSub">Changer de Filiale ou de Poste (Caisse, Terrain, Audit, Boss)</small>
+          </span>
+        </button>
+        <div class="sidebar-footer"><span>BLUE LINE CAPITAL</span><span>9-ERP v3.0 FLOW</span></div>
       </div>
     </aside>
+
     <div class="scrim" id="scrim" hidden></div>
+
     <div class="app-content">
       <header class="topbar">
         <div class="topbar-left">
           <button class="icon-button menu-button" type="button" id="menuToggle" aria-label="Ouvrir le menu" aria-expanded="false"><span class="menu-lines">☰</span></button>
-          <div class="topbar-context"><span class="breadcrumb">SCI Blue Ocean</span><span class="breadcrumb-chevron">/</span><strong id="crumbTitle">Vue d'ensemble</strong></div>
-          <span class="top-demo"><span class="presence-dot"></span> DEMO MODE</span>
+          <div class="topbar-context">
+            <span class="breadcrumb" id="productBreadcrumb">03 · Property & Hotel OS</span>
+            <span class="breadcrumb-chevron">▸</span>
+            <span class="breadcrumb" id="terminalBreadcrumb">Poste Direction</span>
+            <span class="breadcrumb-chevron">/</span>
+            <strong id="crumbTitle">Terminal</strong>
+          </div>
+          <span class="top-demo" id="shiftStatusPill"><span class="presence-dot"></span> FLUX ACTIF</span>
         </div>
         <div class="topbar-actions">
           <span class="top-date" id="todayPill"></span>
-          <div class="lang-switch" role="group" aria-label="Langue / Language"><button data-lang="fr" aria-pressed="true" type="button">FR</button><button data-lang="en" aria-pressed="false" type="button">EN</button></div>
-          <label class="role-label" for="roleSelect"><span data-i18n="role">Rôle</span><select id="roleSelect" aria-label="Sélectionner un rôle de démonstration"><option value="direction">Direction générale</option><option value="reception">Réception</option><option value="housekeeping">Gouvernante</option><option value="service">Services & Restauration</option><option value="finance">Comptabilité & Audit</option></select></label>
-          <div class="user-avatar" aria-hidden="true">BO</div>
+          <div class="lang-switch" role="group" aria-label="Langue / Language">
+            <button data-lang="fr" aria-pressed="true" type="button">FR</button>
+            <button data-lang="en" aria-pressed="false" type="button">EN</button>
+          </div>
+          <label class="role-label" for="roleSelect">
+            <span data-i18n="role">Poste</span>
+            <select id="roleSelect" aria-label="Sélectionner un poste de travail"></select>
+          </label>
+          <button type="button" class="btn btn-dark btn-small" data-action="open-login-gate" id="logoutBtn" title="Ouvrir le Portail des 9 Produits & Flowchart">
+            ⊞ Portail 9 Produits / Postes
+          </button>
+          <div class="user-avatar" id="userAvatar" aria-hidden="true">DG</div>
         </div>
       </header>
+
+      <div id="flowchartBar" class="flowchart-bar" aria-label="Flowchart opérationnel Start-to-End"></div>
+
       <main class="main-content" id="mainContent" tabindex="-1">
-        <div class="page-heading"><div><div class="eyebrow" id="pageEyebrow">HOSPITALITY INTELLIGENCE / 01</div><h1 id="pageTitle">Vue d'ensemble<span class="heading-dot">.</span></h1><p id="pageDescription">L'essentiel de vos opérations, en un seul regard.</p></div><div class="heading-actions" id="headingActions"></div></div>
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow" id="pageEyebrow">BLUE LINE CAPITAL / ERP</div>
+            <h1 id="pageTitle">Terminal Opérationnel<span class="heading-dot">.</span></h1>
+            <p id="pageDescription">Architecture ERP rétro-ingéniée depuis GitHub (Odoo OCA & Frappe ERPNext).</p>
+          </div>
+          <div class="heading-actions" id="headingActions"></div>
+        </div>
         <div id="mainView" aria-live="polite"></div>
       </main>
-      <footer class="app-footer"><span>© 2026 SCI BLUE OCEAN · HOTEL OS <b>DEMO</b></span><span data-i18n="footer">Prototype opérationnel · aucune donnée réelle</span></footer>
+
+      <footer class="app-footer">
+        <span>© 2026 BLUE LINE CAPITAL GROUP & SCI BLUE OCEAN · <b>9-PRODUCT ENTERPRISE ERP</b></span>
+        <span id="footerFlowText" data-i18n="footer">Flowchart Start-to-End : [START] Étape 1 (Guichet/Caisse) → Étape 2 (Terrain/Usine) → Étape 3 (Contrôle/Compta) → [END] Étape 4 (Direction)</span>
+      </footer>
     </div>
   </div>
+
   <div class="modal-root" id="modalRoot" hidden></div>
   <div id="toastRoot" class="toast-root" role="status" aria-live="polite"></div>
   <div id="printRoot" class="print-root" aria-hidden="true"></div>

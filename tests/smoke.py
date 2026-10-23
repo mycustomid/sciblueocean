@@ -52,6 +52,9 @@ def run():
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True, executable_path=_find_chromium(), args=['--no-sandbox'])
         p, errors = bootstrap(browser)
+        # Verify 9 products exist in Product Switcher
+        assert p.locator('#productSelect option').count() == 9, f"Expected 9 products, got {p.locator('#productSelect option').count()}"
+        assert p.locator('.flow-pill').count() == 4, "Expected 4 flowchart steps in top pipeline bar"
         assert p.locator('.nav-item').count() == 13, f"Expected 13 nav items, got {p.locator('.nav-item').count()}"
         assert p.locator('.stat-card').count() == 4
         
@@ -65,7 +68,6 @@ def run():
         
         # Test Bookings view & creation
         p.locator('[data-view="bookings"]').click()
-        before = p.locator('.data-table tbody tr').count()
         p.locator('[data-action="new-booking"]').first.click()
         form = p.locator('form[data-form="booking"]')
         form.locator('[name="guest"]').fill('Odoo VIP Delegate')
@@ -73,11 +75,24 @@ def run():
         form.locator('[name="departure"]').fill('2027-06-17')
         form.locator('button[type="submit"]').click()
         
-        # Verify folio created and saved
-        saved = p.evaluate('window.__testStore.sbo_hotel_os_odoo_v2')
+        # Verify folio created and saved in v3 9-product store
+        saved = p.evaluate('window.__testStore.blcg_sbo_9product_erp_v3')
         assert 'Odoo VIP Delegate' in saved
         
-        # Test Housekeeping role
+        # Test switching to BLEX (Product 02) & Step 1 POS Cashier -> Step 2 Kanban -> Step 3 Control -> Step 4 Boss Sign-Off
+        p.locator('#productSelect').select_option('blex')
+        p.locator('#roleSelect').select_option('service')
+        assert p.locator('.pos-layout').count() == 1
+        p.locator('form[data-form="div-new-record"] [name="client"]').fill('Societe Cacao Douala SA')
+        p.locator('form[data-form="div-new-record"] button[type="submit"]').click()
+        
+        # Advance in Step 2 Kanban
+        p.locator('#roleSelect').select_option('housekeeping')
+        assert p.locator('.kanban-3').count() == 1
+        p.locator('[data-action="div-advance-step"]').first.click()
+        
+        # Switch back to Property & test Housekeeping role
+        p.locator('#productSelect').select_option('property')
         p.locator('#roleSelect').select_option('housekeeping')
         assert p.locator('.nav-item').count() == 5
         assert p.locator('[data-view="folios"]').count() == 0
@@ -127,6 +142,9 @@ def run():
                 dp.on('console', lambda m: cerr.append(m.text) if m.type == 'error' else None)
                 dp.on('pageerror', lambda e: perr.append(str(e)))
                 dp.goto(url, wait_until='networkidle')
+                assert dp.locator('.product-9-card').count() == 9
+                assert dp.locator('.flow-node').count() == 4
+                dp.locator('[data-action="enter-terminal"][data-role="direction"]').first.click()
                 assert dp.evaluate('document.querySelector(".brand-logo").naturalWidth') > 0
                 assert dp.evaluate('document.documentElement.scrollWidth - innerWidth') == 0
                 
@@ -138,7 +156,7 @@ def run():
                 mp = browser.new_page(viewport={'width': 390, 'height': 844})
                 mp.on('console', lambda m: cerr.append(m.text) if m.type == 'error' else None)
                 mp.on('pageerror', lambda e: perr.append(str(e)))
-                mp.goto(url, wait_until='networkidle')
+                mp.goto(url + '?product=property&role=direction&gate=0', wait_until='networkidle')
                 assert mp.evaluate('document.documentElement.scrollWidth - innerWidth') == 0
                 mp.locator('#menuToggle').click()
                 assert 'open' in mp.locator('.sidebar').get_attribute('class')
