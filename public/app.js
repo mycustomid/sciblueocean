@@ -2298,7 +2298,7 @@
       tr(simMeta.titleFr, simMeta.titleEn),
       tr(simMeta.subFr, simMeta.subEn),
       `<form data-form="div-simulator" class="stack">
-        <div class="form-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+        <div class="form-grid sim-grid-3">
           <div class="form-field">
             <label>${esc(simMeta.labelA)}</label>
             <input type="number" name="simA" value="${simMeta.valA}" step="any" required />
