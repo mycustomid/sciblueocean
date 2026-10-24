@@ -1797,8 +1797,173 @@
         </div>
       `)}
 
+      ${renderProductGitHubTables(p)}
+
       <div class="section-gap">
         ${renderHolding9MatrixWidget()}
+      </div>
+    `;
+  }
+
+  function renderProductGitHubTables(p) {
+    if (p.id === 'holding') {
+      return `
+        <div class="section-gap">
+          ${panel(tr('1. Liasse de Consolidation Multi-Sociétés (OCA/account-consolidation · SYSCOHADA)','1. Multi-Company Consolidation Trial Balance (OCA/account-consolidation · SYSCOHADA)'), tr('Agrégation temps-réel des comptes de résultat et bilans des 9 entités avec éliminations intragroupe','Real-time P&L and Balance Sheet aggregation across all 9 entities with intercompany eliminations'), `
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Code Entité</th><th>Filiale Consolidée</th><th>Méthode OHADA</th><th>Chiffre d’Affaires HT</th><th>Flux Intragroupe Éliminés</th><th>EBITDA Consolidé</th><th>Résultat Net</th><th>Quote-Part</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono"><strong>BLC-01</strong></td><td><strong>Blue Line Capital Holding SA</strong></td><td><span class="pill active">Société Mère</span></td><td class="mono">850 000 000 FCFA</td><td class="mono soft">-420 000 000 FCFA</td><td class="mono">390 000 000 FCFA</td><td class="mono positive"><strong>312 000 000 FCFA</strong></td><td>100%</td></tr>
+                  <tr><td class="mono"><strong>BLC-02</strong></td><td><strong>Blue Line Exchange (BLEX FX)</strong></td><td><span class="pill">Intégration Globale</span></td><td class="mono">1 420 000 000 FCFA</td><td class="mono soft">-185 000 000 FCFA</td><td class="mono">480 000 000 FCFA</td><td class="mono positive"><strong>345 000 000 FCFA</strong></td><td>100%</td></tr>
+                  <tr><td class="mono"><strong>BLC-03</strong></td><td><strong>SCI Blue Ocean Hotel & Property</strong></td><td><span class="pill">Intégration Globale</span></td><td class="mono">960 000 000 FCFA</td><td class="mono soft">-45 000 000 FCFA</td><td class="mono">410 000 000 FCFA</td><td class="mono positive"><strong>288 000 000 FCFA</strong></td><td>100%</td></tr>
+                  <tr><td class="mono"><strong>BLC-04</strong></td><td><strong>Blue Line Construction BTP SA</strong></td><td><span class="pill">Intégration Globale</span></td><td class="mono">3 450 000 000 FCFA</td><td class="mono soft">-620 000 000 FCFA</td><td class="mono">790 000 000 FCFA</td><td class="mono positive"><strong>510 000 000 FCFA</strong></td><td>100%</td></tr>
+                  <tr><td class="mono"><strong>BLC-05</strong></td><td><strong>Blue Line Sugar Manufacturing MRP</strong></td><td><span class="pill">Intégration Globale</span></td><td class="mono">4 820 000 000 FCFA</td><td class="mono soft">-110 000 000 FCFA</td><td class="mono">1 150 000 000 FCFA</td><td class="mono positive"><strong>780 000 000 FCFA</strong></td><td>100%</td></tr>
+                  <tr><td class="mono"><strong>BLC-06</strong></td><td><strong>Blue Line Import, SKD & Trade</strong></td><td><span class="pill">Intégration Globale</span></td><td class="mono">2 690 000 000 FCFA</td><td class="mono soft">-230 000 000 FCFA</td><td class="mono">540 000 000 FCFA</td><td class="mono positive"><strong>365 000 000 FCFA</strong></td><td>100%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          `)}
+        </div>
+      `;
+    }
+    if (p.id === 'blex') {
+      return `
+        <div class="section-gap">
+          ${panel(tr('1. Table des Cours de Change & Position des Coffres (apache/fineract + opensourcepos)','1. Live Multi-Currency Dealing Board & Vault Position (apache/fineract + opensourcepos)'), tr('Parité fixe EUR/XAF = 655,957 · Cours Achat/Vente guichet, spread et encaisse physique par devise','Fixed EUR/XAF = 655.957 peg · Live Buy/Sell counter rates, spread % and physical vault balances'), `
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Devise</th><th>Parité / Cours Pivot</th><th>Cours Achat (Buy)</th><th>Cours Vente (Sell)</th><th>Spread %</th><th>Encaisse Coffre (Devise)</th><th>Contre-Valeur XAF</th><th>Statut Plafond COBAC</th></tr></thead>
+                <tbody>
+                  <tr><td><strong class="mono">EUR · Euro Zone</strong></td><td class="mono">655,957 XAF</td><td class="mono">655,00 XAF</td><td class="mono"><strong>665,00 XAF</strong></td><td>1,52%</td><td class="mono">450 000 EUR</td><td class="mono"><strong>295 180 650 FCFA</strong></td><td><span class="status confirmed">Conforme BEAC</span></td></tr>
+                  <tr><td><strong class="mono">USD · US Dollar</strong></td><td class="mono">605,500 XAF</td><td class="mono">598,00 XAF</td><td class="mono"><strong>614,00 XAF</strong></td><td>2,60%</td><td class="mono">380 000 USD</td><td class="mono"><strong>230 090 000 FCFA</strong></td><td><span class="status confirmed">Conforme BEAC</span></td></tr>
+                  <tr><td><strong class="mono">GBP · Livre Sterling</strong></td><td class="mono">768,200 XAF</td><td class="mono">758,00 XAF</td><td class="mono"><strong>780,00 XAF</strong></td><td>2,82%</td><td class="mono">95 000 GBP</td><td class="mono"><strong>72 979 000 FCFA</strong></td><td><span class="status confirmed">Conforme BEAC</span></td></tr>
+                  <tr><td><strong class="mono">CNY · Yuan Renminbi</strong></td><td class="mono">84,500 XAF</td><td class="mono">82,80 XAF</td><td class="mono"><strong>86,40 XAF</strong></td><td>4,16%</td><td class="mono">2 100 000 CNY</td><td class="mono"><strong>177 450 000 FCFA</strong></td><td><span class="status occupied">Forte Demande Import</span></td></tr>
+                  <tr><td><strong class="mono">AED · Dirham Dubaï</strong></td><td class="mono">164,800 XAF</td><td class="mono">161,50 XAF</td><td class="mono"><strong>168,50 XAF</strong></td><td>4,15%</td><td class="mono">800 000 AED</td><td class="mono"><strong>131 840 000 FCFA</strong></td><td><span class="status confirmed">KYC Corridor Actif</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          `)}
+        </div>
+      `;
+    }
+    if (p.id === 'construction') {
+      return `
+        <div class="section-gap">
+          ${panel(tr('1. Bordereau des Prix Unitaires & Devis Quantitatif Estimatif — BPU / DQE (OCA/project + contracting)','1. Bill of Quantities (BOQ / DQE) & Physical Site Progress (OCA/project + contracting)'), tr('Métrés contradictoires sur chantier, quantités exécutées et calcul automatique des décomptes provisoires','Verified site quantity takeoffs, physical completion % and progress billing valuation'), `
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Code Lot BPU</th><th>Désignation des Ouvrages BTP</th><th>Unité</th><th>Qté Marché</th><th>Qté Réalisée</th><th>Avancement</th><th>Prix Unitaire HT</th><th>Montant Réalisé HT</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono"><strong>LOT-100</strong></td><td><strong>Terrassement Général, Fouilles en Puits & Blindage</strong></td><td>m³</td><td class="mono">4 500</td><td class="mono">4 500</td><td><span class="status confirmed">100%</span></td><td class="mono">8 500 FCFA</td><td class="mono"><strong>38 250 000 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>LOT-200</strong></td><td><strong>Béton Armé B35 pour Radier, Poteaux & Voiles (Ciment CEM II 42.5)</strong></td><td>m³</td><td class="mono">1 200</td><td class="mono">840</td><td><span class="status occupied">70%</span></td><td class="mono">145 000 FCFA</td><td class="mono"><strong>121 800 000 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>LOT-300</strong></td><td><strong>Ferraillage Acier Haute Adhérence FeE500 Façonné & Posé</strong></td><td>Tonne</td><td class="mono">140</td><td class="mono">98</td><td><span class="status occupied">70%</span></td><td class="mono">780 000 FCFA</td><td class="mono"><strong>76 440 000 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>LOT-400</strong></td><td><strong>Charpente Métallique Galvanisée & Couverture Bac Alu 7/10e</strong></td><td>m²</td><td class="mono">2 800</td><td class="mono">1 400</td><td><span class="status cleaning">50%</span></td><td class="mono">32 000 FCFA</td><td class="mono"><strong>44 800 000 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>LOT-500</strong></td><td><strong>Voirie Lourde Pavés Autobloquants & Caniveaux Béton Pluvial</strong></td><td>ml</td><td class="mono">650</td><td class="mono">520</td><td><span class="status occupied">80%</span></td><td class="mono">65 000 FCFA</td><td class="mono"><strong>33 800 000 FCFA</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          `)}
+        </div>
+      `;
+    }
+    if (p.id === 'sugar') {
+      return `
+        <div class="section-gap">
+          ${panel(tr('1. Nomenclature BOM, Gamme d’Usinage (Job Cards) & Contrôle Labo ICUMSA 45 (frappe/erpnext Manufacturing)','1. Multi-Stage BOM, Shop-Floor Job Cards & ICUMSA 45 Quality Inspection (frappe/erpnext Manufacturing)'), tr('Traçabilité complète du lot : Pont-Bascule → Moulins → Évaporation → Cuite Sous Vide → Turbinage → Ensachage 50kg','Full batch routing: Weighbridge → Tandem Mills → Evaporation → Vacuum Boiling → Centrifugals → 50kg Bagging'), `
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Job Card / Opération</th><th>Poste de Travail (Workstation)</th><th>Intrant / Paramètre Process</th><th>Mesure Labo / Capteur</th><th>Norme Cible ICUMSA</th><th>Rendement / État</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono"><strong>OP-10 · BROYAGE</strong></td><td><strong>Pont-Bascule & Tandem 5 Moulins</strong></td><td>Canne Fraîche (9,2 T / T Sucre)</td><td class="mono">Richesse Pol : 13,85 °Z</td><td>Extraction Jus ≥ 96,0%</td><td><span class="status confirmed">96,4% · Optimal</span></td></tr>
+                  <tr><td class="mono"><strong>OP-20 · ÉPURATION</strong></td><td><strong>Chaulage CaO, Sulfitation & Décanteur</strong></td><td>Lait de Chaux 12kg + Floculant</td><td class="mono">pH Jus Clair : 7,15</td><td>pH 7,0 – 7,2 · Turbidité 0</td><td><span class="status confirmed">Conforme</span></td></tr>
+                  <tr><td class="mono"><strong>OP-30 · ÉVAPORATION</strong></td><td><strong>Quadruple Effet Sous Vide</strong></td><td>Vapeur Bagasse 2,5 bar</td><td class="mono">Brix Sirop : 68,4 °Bx</td><td>65,0 à 70,0 °Brix</td><td><span class="status confirmed">Conforme</span></td></tr>
+                  <tr><td class="mono"><strong>OP-40 · CUITE & TURB</strong></td><td><strong>Chaudières à Cuire A/B/C & Centrifuges</strong></td><td>Masse Cuite Jet A (1 200 rpm)</td><td class="mono">Polarisation : 99,84 °Z</td><td>Pol ≥ 99,80 °Z</td><td><span class="status confirmed">Certifié Labo</span></td></tr>
+                  <tr><td class="mono"><strong>OP-50 · SÉCHAGE & LABO</strong></td><td><strong>Sécheur Tambour & Spectrophotomètre</strong></td><td>Sucre Blanc Cristallisé Extra</td><td class="mono">Couleur : 38 IU · Hum : 0,03%</td><td>ICUMSA ≤ 45 IU · Hum ≤ 0,04%</td><td><span class="status confirmed">ICUMSA 45 PASS</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          `)}
+        </div>
+      `;
+    }
+    if (p.id === 'trade') {
+      return `
+        <div class="section-gap">
+          ${panel(tr('1. Fiche de Coût d’Approche Conteneurs (erpnext.LandedCostVoucher) & Assemblage SKD/CKD','1. Container Landed Cost Voucher (CIF + CEMAC Duty) & SKD Assembly Tracker'), tr('Ventilation exacte des frais portuaires PAD, droits de douane TEC CEMAC et coût de revient unitaire dédouané','Exact apportionment of CIF value, CEMAC customs tariff, Port of Douala handling and unit landed cost'), `
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Conteneur / B/L</th><th>Marchandise / Kit SKD</th><th>Valeur CAF Douala</th><th>Douane TEC CEMAC</th><th>Acconage PAD & GUCE</th><th>TVA Import 19,25%</th><th>Coût Revient Total</th><th>Statut Sydonia++</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono"><strong>MSCU-882190</strong></td><td><strong>20× Motoculteurs Diesel 15CV (SKD)</strong></td><td class="mono">11 500 000 FCFA</td><td class="mono">1 150 000 FCFA (10%)</td><td class="mono">620 000 FCFA</td><td class="mono">2 554 475 FCFA</td><td class="mono"><strong>15 824 475 FCFA</strong></td><td><span class="status confirmed">BAE Délivré</span></td></tr>
+                  <tr><td class="mono"><strong>CMAU-441029</strong></td><td><strong>4× Groupes Électrogènes 100kVA (CKD)</strong></td><td class="mono">22 000 000 FCFA</td><td class="mono">4 400 000 FCFA (20%)</td><td class="mono">890 000 FCFA</td><td class="mono">5 253 325 FCFA</td><td class="mono"><strong>32 543 325 FCFA</strong></td><td><span class="status occupied">En Montage SKD</span></td></tr>
+                  <tr><td class="mono"><strong>MAEU-773104</strong></td><td><strong>Conteneur 40HQ Pneus Poids Lourds</strong></td><td class="mono">14 200 000 FCFA</td><td class="mono">2 840 000 FCFA (20%)</td><td class="mono">740 000 FCFA</td><td class="mono">3 422 650 FCFA</td><td class="mono"><strong>21 202 650 FCFA</strong></td><td><span class="status confirmed">Stock Entrepôt</span></td></tr>
+                  <tr><td class="mono"><strong>HLCU-910442</strong></td><td><strong>15× Tricycles Cargo 250cc Renforcés</strong></td><td class="mono">10 800 000 FCFA</td><td class="mono">2 160 000 FCFA (20%)</td><td class="mono">580 000 FCFA</td><td class="mono">2 606 450 FCFA</td><td class="mono"><strong>16 146 450 FCFA</strong></td><td><span class="status cleaning">Liquidation GUCE</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          `)}
+        </div>
+      `;
+    }
+    if (p.id === 'finance') {
+      return `
+        <div class="section-gap">
+          ${panel(tr('1. Balance Générale des Comptes à 6 Colonnes — Plan Comptable OHADA Révisé (OCA/account-financial-tools)','1. 6-Column SYSCOHADA Trial Balance & General Ledger (OCA/account-financial-tools)'), tr('Équilibre strict Débit = Crédit sur les Classes 1 à 7, TVA collectée/récupérable (19,25%) et précompte AIR (2,2%)','Strict Debit = Credit verification across OHADA Classes 1 to 7, 19.25% VAT and 2.2% WHT'), `
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Compte OHADA</th><th>Intitulé du Compte SYSCOHADA</th><th>Classe</th><th>Mouv. Débit</th><th>Mouv. Crédit</th><th>Solde Débiteur</th><th>Solde Créditeur</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono"><strong>101000</strong></td><td><strong>Capital Social Appelé Versé</strong></td><td>Classe 1</td><td class="mono">0 FCFA</td><td class="mono">500 000 000 FCFA</td><td class="mono">—</td><td class="mono"><strong>500 000 000 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>241100</strong></td><td><strong>Matériel & Outillage Industriel (Usine & BTP)</strong></td><td>Classe 2</td><td class="mono">320 000 000 FCFA</td><td class="mono">0 FCFA</td><td class="mono"><strong>320 000 000 FCFA</strong></td><td class="mono">—</td></tr>
+                  <tr><td class="mono"><strong>401100</strong></td><td><strong>Fournisseurs d’Exploitation Locaux & Import</strong></td><td>Classe 4</td><td class="mono">85 000 000 FCFA</td><td class="mono">142 000 000 FCFA</td><td class="mono">—</td><td class="mono"><strong>57 000 000 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>411100</strong></td><td><strong>Clients Groupe & Créances Commerciales</strong></td><td>Classe 4</td><td class="mono">210 000 000 FCFA</td><td class="mono">165 000 000 FCFA</td><td class="mono"><strong>45 000 000 FCFA</strong></td><td class="mono">—</td></tr>
+                  <tr><td class="mono"><strong>443100</strong></td><td><strong>État, TVA Facturée sur Ventes (19,25% DGI)</strong></td><td>Classe 4</td><td class="mono">12 400 000 FCFA</td><td class="mono">31 650 000 FCFA</td><td class="mono">—</td><td class="mono"><strong>19 250 000 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>521100</strong></td><td><strong>Banques Locales CEMAC (Afriland, BICEC, BGFI)</strong></td><td>Classe 5</td><td class="mono">490 000 000 FCFA</td><td class="mono">188 000 000 FCFA</td><td class="mono"><strong>302 000 000 FCFA</strong></td><td class="mono">—</td></tr>
+                  <tr><td class="mono"><strong>601/661</strong></td><td><strong>Achats Matières & Charges de Personnel CNPS</strong></td><td>Classe 6</td><td class="mono">195 000 000 FCFA</td><td class="mono">0 FCFA</td><td class="mono"><strong>195 000 000 FCFA</strong></td><td class="mono">—</td></tr>
+                  <tr><td class="mono"><strong>701/706</strong></td><td><strong>Ventes de Produits Finis, Travaux & Services</strong></td><td>Classe 7</td><td class="mono">0 FCFA</td><td class="mono">285 750 000 FCFA</td><td class="mono">—</td><td class="mono"><strong>285 750 000 FCFA</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          `)}
+        </div>
+      `;
+    }
+    if (p.id === 'hr') {
+      return `
+        <div class="section-gap">
+          ${panel(tr('1. Livre de Paie Réglementaire Cameroun — CNPS, IRPP, CAC, CFC & RAV (frappe/hrms + horilla)','1. Cameroon Statutory Monthly Payroll Register — CNPS, IRPP, CAC, CFC & RAV (frappe/hrms + horilla)'), tr('Plafond légal CNPS PVID 750 000 FCFA/mois (max 31 500 FCFA part salariale) · Barème progressif IRPP + 10% CAC + 1% Crédit Foncier','Statutory 750,000 FCFA CNPS ceiling (max 31,500 FCFA employee pension) · Progressive IRPP + 10% CAC + 1% CFC'), `
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Matricule & CNPS</th><th>Salarié & Fonction</th><th>Cat. OHADA</th><th>Salaire Brut</th><th>CNPS Salarié (4,2%)</th><th>IRPP + CAC (10%)</th><th>CFC (1%) + RAV</th><th>CNPS Patronale</th><th>Salaire Net à Payer</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono"><strong>EMP-001 · #329-110</strong></td><td><strong>Ing. Lucien Douala</strong> (Chef Usine MRP)</td><td>Cat. 11 / G</td><td class="mono">950 000 FCFA</td><td class="mono">31 500 FCFA (Plafond)</td><td class="mono">118 400 FCFA</td><td class="mono">19 500 FCFA</td><td class="mono soft">106 400 FCFA</td><td class="mono positive"><strong>780 600 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>EMP-002 · #418-204</strong></td><td><strong>Ing. Patrice Mbarga</strong> (Conducteur BTP)</td><td>Cat. 10 / F</td><td class="mono">820 000 FCFA</td><td class="mono">31 500 FCFA (Plafond)</td><td class="mono">94 200 FCFA</td><td class="mono">16 700 FCFA</td><td class="mono soft">91 840 FCFA</td><td class="mono positive"><strong>677 600 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>EMP-003 · #509-882</strong></td><td><strong>Chantal Biya-Meka</strong> (Auditeur Fiscal)</td><td>Cat. 10 / F</td><td class="mono">750 000 FCFA</td><td class="mono">31 500 FCFA</td><td class="mono">81 500 FCFA</td><td class="mono">14 000 FCFA</td><td class="mono soft">84 000 FCFA</td><td class="mono positive"><strong>623 000 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>EMP-004 · #612-339</strong></td><td><strong>Clarisse Fotso</strong> (Cambiste BLEX FX)</td><td>Cat. 8 / D</td><td class="mono">420 000 FCFA</td><td class="mono">17 640 FCFA</td><td class="mono">34 800 FCFA</td><td class="mono">8 700 FCFA</td><td class="mono soft">47 040 FCFA</td><td class="mono positive"><strong>358 860 FCFA</strong></td></tr>
+                  <tr><td class="mono"><strong>EMP-005 · #704-511</strong></td><td><strong>Hervé Siewe</strong> (Chef Atelier SKD Douala)</td><td>Cat. 9 / E</td><td class="mono">540 000 FCFA</td><td class="mono">22 680 FCFA</td><td class="mono">51 200 FCFA</td><td class="mono">10 900 FCFA</td><td class="mono soft">60 480 FCFA</td><td class="mono positive"><strong>455 220 FCFA</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          `)}
+        </div>
+      `;
+    }
+    return `
+      <div class="section-gap">
+        ${panel(tr('1. File de Travaux Asynchrones (OCA/queue · queue.job) & Règles IA Copilot','1. Async Worker Queue (OCA/queue · queue.job) & AI Anomaly Rules'), tr('Supervision temps-réel des connecteurs ERP inter-filiales, tâches planifiées ir.cron et alertes heuristiques IA','Real-time monitoring of cross-subsidiary ERP connectors, scheduled ir.cron jobs and AI heuristic alerts'), `
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Job UUID</th><th>Canal Worker</th><th>Méthode / Règle IA</th><th>Filiale Cible</th><th>Latence</th><th>Verdict / État</th></tr></thead>
+              <tbody>
+                <tr><td class="mono"><strong>JOB-99201</strong></td><td><span class="pill">root.ai_copilot</span></td><td><strong>aml.cobac.structuring_scan()</strong></td><td>02 · BLEX Change FX</td><td class="mono">12 ms</td><td><span class="status confirmed">Done · 0 Fractionnement</span></td></tr>
+                <tr><td class="mono"><strong>JOB-99202</strong></td><td><span class="pill">root.mrp_telemetry</span></td><td><strong>mrp.sugar.icumsa_polarimetry_check()</strong></td><td>05 · Sugar MRP</td><td class="mono">18 ms</td><td><span class="status confirmed">Done · 38 IU (Conforme)</span></td></tr>
+                <tr><td class="mono"><strong>JOB-99203</strong></td><td><span class="pill">root.syscohada</span></td><td><strong>account.move.verify_debit_credit_balance()</strong></td><td>07 · Finance OHADA</td><td class="mono">9 ms</td><td><span class="status confirmed">Done · Équilibre 100%</span></td></tr>
+                <tr><td class="mono"><strong>JOB-99204</strong></td><td><span class="pill">root.btp_boq</span></td><td><strong>project.boq.cement_variance_detector()</strong></td><td>04 · Construction BTP</td><td class="mono">24 ms</td><td><span class="status occupied">Écart +1,4% Toléré</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        `)}
       </div>
     `;
   }
@@ -2127,7 +2292,8 @@
           <div><span>${esc(taxLabel)}</span><strong class="mono" style="color:#2a7e71">${money(sumTax)}</strong></div>
           <div><span>${tr('Total Net Liquidé / TTC','Total Net Settled / TTC')}</span><strong class="mono">${money(sumTTC)}</strong></div>
         </div>
-        <section class="panel">
+        ${renderProductGitHubTables(p)}
+        <section class="panel" style="margin-top:20px">
           <div class="table-wrap">
             <table class="data-table">
               <thead><tr><th>Pièce / Bordereau</th><th>Tiers / Entité</th><th>Désignation</th><th>Base H.T. / Brut</th><th>${esc(taxLabel)}</th><th>Net / TTC</th><th>Mode Règlement</th><th>Étape</th><th>Pièce Officielle</th></tr></thead>
@@ -2482,6 +2648,40 @@
   }
 
   function renderMaintenance() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const units = DIV_UNITS_SEED[p.id] || DIV_UNITS_SEED.holding;
+      const list = db.divisionRecords[p.id] || [];
+      return `
+        <div class="stats-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+          ${stat(tr('Unités & Équipements Suivis','Monitored Units & Assets'), String(units.length), esc(p.odooModel), 'wrench')}
+          ${stat(tr('Contrôles Techniques Actifs','Active Technical Checks'), String(list.filter(r => r.step < 4).length), tr('En cours dans le Flowchart','In progress in Flowchart'), 'shield')}
+          ${stat(tr('Conformité & Certificats','Certified & Compliant'), String(list.filter(r => r.step === 4).length), tr('Validés sans réserve','Cleared with zero defects'), 'check')}
+        </div>
+        ${panel(tr('Registre Technique, GMAO & Conformité Opérationnelle','Technical Asset Maintenance & Compliance Log'), `${esc(tr(p.nameFr, p.nameEn))} · ${esc(p.repo)}`, `
+          <div class="task-list">
+            ${units.map((u, idx) => `
+              <div class="task-card">
+                <div class="task-info">
+                  <div class="inline-flex" style="gap:8px">
+                    <strong class="mono">${esc(u.id)}</strong>
+                    <span class="maint-badge ${idx === 0 ? 'maint-urgent' : 'maint-normal'}">${idx === 0 ? 'PRIORITÉ HAUTE' : 'INSPECTION OK'}</span>
+                    <strong>${esc(u.type)}</strong>
+                  </div>
+                  <p style="margin:5px 0">${esc(u.zone)} — ${esc(u.specs.join(' · '))}</p>
+                  <small class="soft">Capacité / Valorisation : ${money(u.rate)} · Modèle : ${esc(p.odooModel)}</small>
+                </div>
+                <div class="toolbar-group">
+                  ${statusChip(u.status)}
+                  ${btn('switch-role-step', `${icon('wrench')}${tr('Traiter (Étape 2)','Process (Step 2)')}`, 'outline btn-small', 'data-role="housekeeping"')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `)}
+      `;
+    }
+
     const openTickets = db.maintenance.filter(m => m.stage !== 'resolved');
     return `
       <div class="stats-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
@@ -2514,6 +2714,26 @@
   }
 
   function renderOperations() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const units = DIV_UNITS_SEED[p.id] || DIV_UNITS_SEED.holding;
+      return `
+        <div class="operations-grid">
+          ${units.map(u => `
+            <article class="ops-card">
+              <div class="ops-icon">${icon('bolt', 23)}</div>
+              <h3>${esc(u.id)} · ${esc(u.type)}</h3>
+              <p>${esc(u.zone)} — ${esc(u.specs.join(' · '))}</p>
+              <div class="ops-footer">
+                ${statusChip(u.status === 'available' || u.status === 'inspected' ? 'healthy' : 'watch')}
+                <span class="mono soft" style="font-size:11px">${money(u.rate)}</span>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+      `;
+    }
+
     return `
       <div class="operations-grid">
         ${db.systems.map(s => `
@@ -2607,6 +2827,41 @@
   }
 
   function renderReports() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const list = db.divisionRecords[p.id] || [];
+      const sumHT = list.reduce((a, r) => a + r.amount, 0);
+      const sumSigned = list.filter(r => r.step === 4).reduce((a, r) => a + r.amount, 0);
+      const sumPending = sumHT - sumSigned;
+      return `
+        <div class="stats-grid">
+          ${stat(tr('Volume Brut Consolidé','Gross Division Volume'), money(sumHT), `${list.length} dossiers (${esc(p.odooModel)})`, 'wallet')}
+          ${stat(tr('Volume Certifié & Clôturé','Certified & Closed Volume'), money(sumSigned), tr('Validé Étape 4','Validated Step 4'), 'check')}
+          ${stat(tr('En Cours de Traitement','In-Flight Pipeline'), money(sumPending), tr('Étapes 1 à 3','Steps 1 to 3'), 'receipt')}
+          ${stat(tr('Architecture GitHub','GitHub Reference'), esc(p.repo), esc(p.num), 'dashboard')}
+        </div>
+        ${renderProductGitHubTables(p)}
+        ${panel(tr('Journal des Événements & Audit Trail (SysLog Multi-Postes)','Multi-Terminal System Action & Audit Log'), tr('Traçabilité complète des transitions du Flowchart entre les postes','Complete traceability of Flowchart handoffs across roles'), `
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Date / Heure</th><th>Produit : Poste</th><th>Action ERP</th><th>Détail / Référence</th></tr></thead>
+              <tbody>
+                ${db.history.slice(0, 18).map(h => `
+                  <tr>
+                    <td><span class="mono">${esc(new Date(h.when).toLocaleString(lang==='fr'?'fr-FR':'en-GB'))}</span></td>
+                    <td><span class="pill">${esc(h.role)}</span></td>
+                    <td><strong>${esc(h.action)}</strong></td>
+                    <td class="mono soft">${esc(h.meta)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          ${db.history.length === 0 ? empty(tr('Aucun journal pour l’instant.','No audit logs yet.')) : ''}
+        `)}
+      `;
+    }
+
     const m = hospitalityMetrics();
     return `
       <div class="stats-grid">
