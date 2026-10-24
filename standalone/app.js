@@ -404,6 +404,165 @@
     { id:'settings', icon:'sliders', group:2, fr:'Matrice RBAC & Système', en:'RBAC Matrix & Demo DB', descFr:'Matrice des droits ir.model.access et données de démonstration.', descEn:'ir.model.access rights matrix and demo dataset.' }
   ];
 
+  // Domain-specific sidebar navigation labels per Product so Sugar/BLEX/BTP/HR never display "Hotel Rooms"
+  const DIV_NAV_LABELS = {
+    holding: {
+      rooms: ['Portefeuille 9 Filiales & Actifs', '9 Subsidiaries & Asset Portfolio'],
+      bookings: ['Résolutions & Dossiers CAPEX', 'Board Resolutions & CAPEX'],
+      folios: ['Liasse Consolidation OHADA', 'Consolidated Ledger & Eliminations'],
+      services: ['Simulateur TRI (IRR) & VAN (NPV)', 'CAPEX IRR & NPV Simulator'],
+      calendar: ['Calendrier Conseils & Comités', 'Board & Committee Calendar'],
+      guests: ['Actionnaires & Banques CEMAC', 'Shareholders & Syndicate Banks'],
+      housekeeping: ['Kanban Gouvernance & Due Diligence', 'Governance & Due Diligence Kanban'],
+      audit: ['Audit Consolidé Groupe & Commissariat', 'Consolidated Statutory Audit']
+    },
+    blex: {
+      rooms: ['Coffres Devises & Guichets FX', 'FX Currency Vaults & Counters'],
+      bookings: ['Registre des Opérations FX', 'FX Deals & Exchange Register'],
+      folios: ['Bordereaux FX & Règlements BEAC', 'FX Settlement Slips & Ledger'],
+      services: ['Calculateur Spread FX & LBC/FT', 'Live FX Spread & AML Calculator'],
+      calendar: ['Échéancier Transferts & Couvertures', 'FX Settlement & Hedging Schedule'],
+      guests: ['Base KYC Clients & Déclarations COBAC', 'KYC Counterparties & COBAC AML'],
+      housekeeping: ['Kanban Flux Guichet → Coffre → AML', 'FX Deal Execution Kanban'],
+      audit: ['Contrôle Réglementaire COBAC (>5M)', 'COBAC AML & Vault Reconciliation']
+    },
+    construction: {
+      rooms: ['Parc Chantiers, Lots & Engins BTP', 'Active Construction Sites & Fleet'],
+      bookings: ['Marchés BTP & Attachements', 'Works Contracts & Site Logs'],
+      folios: ['Décomptes Provisoires & BOQ', 'Progress Billing & BOQ Ledger'],
+      services: ['Calculateur Décompte BTP & Retenue', 'BOQ Progress Billing Calculator'],
+      calendar: ['Planning Gantt & Jalons Chantier', 'Master Site Schedule & Milestones'],
+      guests: ['Maîtres d’Ouvrage & Sous-Traitants', 'Project Owners & Subcontractors'],
+      housekeeping: ['Kanban Chantier (Études → Réception)', 'Site Engineering & Works Kanban'],
+      audit: ['Contrôle Labo Béton, HSE & Garantie', 'Geotech Lab, HSE & Retention Audit']
+    },
+    sugar: {
+      rooms: ['Lignes Raffinage, Cuites & Silos', 'Refinery Lines, Boilers & Silos'],
+      bookings: ['Ordres de Fabrication (MO / Lots)', 'Manufacturing Orders (mrp.production)'],
+      folios: ['Bilans Matières & Coûts de Revient', 'Material Yield & Costing Ledger'],
+      services: ['Calculateur Rendement Canne & Brix', 'Cane Yield & ICUMSA Lab Simulator'],
+      calendar: ['Planning Campagne Sucrière & Quarts', 'Refinery Shift & Campaign Schedule'],
+      guests: ['Plantations & Grossistes Sucre', 'Cane Estates & Sugar Wholesalers'],
+      housekeeping: ['Kanban Usine (Pesée → Turbinage)', 'Shop-Floor MRP Execution Kanban'],
+      audit: ['Certificat Labo Polarimétrie ICUMSA 45', 'ICUMSA 45 & Brix Lab Certification']
+    },
+    trade: {
+      rooms: ['Entrepôts PAD, Conteneurs & SKD', 'Douala Port Bonded Zones & SKD Line'],
+      bookings: ['Connaissements (B/L) & Import GUCE', 'Bills of Lading & Import Dossiers'],
+      folios: ['Coûts d’Approche (Landed Cost CAF)', 'Landed Cost & Customs Liquidation'],
+      services: ['Simulateur Douane CEMAC (TEC+TVA)', 'CEMAC Customs & Landed Cost Calc'],
+      calendar: ['Planning Navires PAD & Assemblage', 'Vessel ETA & SKD Assembly Schedule'],
+      guests: ['Fournisseurs, Transitaires & B2B', 'Global Suppliers & Freight Forwarders'],
+      housekeeping: ['Kanban Transit (Port PAD → SKD)', 'Port Clearance & SKD Assembly Kanban'],
+      audit: ['Apurement Manifeste GUCE & SGS', 'GUCE Customs & SGS Compliance Audit']
+    },
+    finance: {
+      rooms: ['Plan Comptable OHADA (Classes 1–8)', 'SYSCOHADA Chart of Accounts (1–8)'],
+      bookings: ['Journaux Comptables (account.move)', 'Accounting Journals (Moves)'],
+      folios: ['Grand Livre, Balance & Lettrage', 'General Ledger & Trial Balance'],
+      services: ['Simulateur Fiscal TVA 19,25% & AIR', 'Cameroon VAT 19.25% & WHT Simulator'],
+      calendar: ['Échéancier Fiscal DGI & Clôtures', 'Statutory Tax Filing Calendar'],
+      guests: ['Comptes Tiers Clients (411) & Frs (401)', 'AR (411) & AP (401) Sub-Ledgers'],
+      housekeeping: ['Kanban Clôture (Pièces → Imputation)', 'Journal Posting & Matching Kanban'],
+      audit: ['Contrôle Débit=Crédit & Liasse DSF', 'Trial Balance & DSF Tax Audit']
+    },
+    hr: {
+      rooms: ['Effectifs par Filiale & Catégories', 'Workforce Roster & OHADA Grades'],
+      bookings: ['Pointages Biométriques & Congés', 'Biometric Attendance & Leave Logs'],
+      folios: ['Bulletins de Paie CNPS / DIPE', 'Statutory Payslips & Payroll Register'],
+      services: ['Calculateur Officiel Paie Cameroun', 'Cameroon CNPS / IRPP Payslip Calc'],
+      calendar: ['Planning Quarts, Congés & Paie', 'Shift Roster & Payroll Calendar'],
+      guests: ['Dossiers Salariés & Matricules CNPS', 'Employee Directory & CNPS IDs'],
+      housekeeping: ['Kanban Paie (Pointage → Virement)', 'Monthly Payroll Processing Kanban'],
+      audit: ['Télédéclaration CNPS & DIPE DGI', 'CNPS Social Security & DIPE Audit']
+    },
+    digital: {
+      rooms: ['Topologie Serveurs, Bus & Connecteurs', 'ERP Nodes, Event Bus & Connectors'],
+      bookings: ['Files Jobs Asynchrones (queue.job)', 'Async Job Queues & Webhook Logs'],
+      folios: ['Registre Sécurité & Traces RBAC', 'Security Ledger & RBAC Access Logs'],
+      services: ['Scanner IA Anomalies & Fraude (9 ERP)', 'AI Anomaly & Fraud Scanner (9 ERP)'],
+      calendar: ['Fenêtres Maintenance & Cron Jobs', 'Scheduled Cron Jobs & SLA Windows'],
+      guests: ['Comptes Opérateurs & Clés API', 'Operator Accounts & API Credentials'],
+      housekeeping: ['Kanban DevOps (Alerte → Patch → Prod)', 'DevOps Incident & Pipeline Kanban'],
+      audit: ['Certification Cyber-Gouvernance & SLA', 'Cybersecurity & Zero-Trust Audit']
+    }
+  };
+
+  function navItemMeta(id, prodId = productId) {
+    const base = navigation.find(v => v.id === id) || navigation[0];
+    if (prodId === 'property' || !DIV_NAV_LABELS[prodId] || !DIV_NAV_LABELS[prodId][id]) return base;
+    const [fr, en] = DIV_NAV_LABELS[prodId][id];
+    return { ...base, fr, en };
+  }
+
+  // Domain-specific physical/financial units per Product for the 2nd sidebar tab (rooms/units)
+  const DIV_UNITS_SEED = {
+    holding: [
+      { id:'HOLD-SBO', zone:'Pôle Immobilier & Hôtellerie', type:'Filiale Détenue à 100%', rate:4800000000, status:'available', specs:['24 Unités Hôtelières', 'Baux Commerciaux', 'Rendement 14,2%'] },
+      { id:'HOLD-SUG', zone:'Pôle Agro-Industrie', type:'Complexe Sucrier MRP', rate:6200000000, status:'occupied', specs:['Ligne Raffinage A/B', 'ICUMSA 45', 'EBITDA +22%'] },
+      { id:'HOLD-BTP', zone:'Pôle Infrastructures', type:'Blue Line Construction SA', rate:3450000000, status:'occupied', specs:['5 Chantiers Actifs', 'Centrale Béton', 'Carnet 8,4 Mds'] },
+      { id:'HOLD-BLEX', zone:'Pôle Financier & Change', type:'Blue Line Exchange (BLEX)', rate:2900000000, status:'available', specs:['Agrément COBAC/BEAC', '6 Devises', 'Spread Moyen 1,8%'] },
+      { id:'HOLD-TRD', zone:'Pôle Logistique & SKD', type:'Import, Assemblage & Négoce', rate:2150000000, status:'occupied', specs:['Terminal PAD Douala', 'Atelier SKD', 'Corridor CEMAC'] },
+      { id:'HOLD-CAP', zone:'Trésorerie & Fonds Groupe', type:'Réserve Stratégique CAPEX', rate:1850000000, status:'inspected', specs:['Pool Bancaire CEMAC', 'Audit OHADA', 'Liquidité Immédiate'] }
+    ],
+    blex: [
+      { id:'COFFRE-EUR', zone:'Coffres Devises Principales', type:'Réserve Euro ( Zone Franc / BCE )', rate:295180650, status:'available', specs:['Stock: 450 000 EUR', 'Parité: 655,957 XAF', 'Plafond COBAC OK'] },
+      { id:'COFFRE-USD', zone:'Coffres Devises Principales', type:'Réserve Dollar US ( billets neufs )', rate:230090000, status:'occupied', specs:['Stock: 380 000 USD', 'Cours: 605,50 XAF', 'Forte Demande Import'] },
+      { id:'COFFRE-XAF', zone:'Coffres Devises Principales', type:'Encaisse Centrale Franc CFA (BEAC)', rate:620000000, status:'available', specs:['Coffre Blindé Akwa', 'Coupures 10 000 XAF', 'Assurance Toutes Valeurs'] },
+      { id:'COFFRE-CNY', zone:'Devises Asie & Moyen-Orient', type:'Ligne Yuan Renminbi (Fournisseurs Chine)', rate:177450000, status:'occupied', specs:['Stock: 2 100 000 CNY', 'Cours: 84,50 XAF', 'Règlement Canton/Yiwu'] },
+      { id:'COFFRE-AED', zone:'Devises Asie & Moyen-Orient', type:'Réserve Dirham Émirats (Corridor Dubaï)', rate:131840000, status:'available', specs:['Stock: 800 000 AED', 'Cours: 164,80 XAF', 'KYC Renforcé'] },
+      { id:'GUICHET-VIP', zone:'Terminaux & Guichets BLEX', type:'Salon Change Corporate & Diplomatique', rate:95000000, status:'inspected', specs:['Compteuse Anti-Faux', 'Scanner Passeport KYC', 'Liaison ANIF/COBAC'] }
+    ],
+    construction: [
+      { id:'BTP-AKWA', zone:'Chantiers Bâtiment & Tours', type:'Tour Commerciale Akwa Phase II (R+8)', rate:485000000, status:'occupied', specs:['Avancement: 64%', 'Béton B35 Précontraint', '45 Ouvriers'] },
+      { id:'BTP-BONA', zone:'Chantiers Industriels', type:'Complexe Entrepôt Portuaire Bonabéri', rate:320000000, status:'occupied', specs:['Avancement: 78%', 'Charpente Métallique', 'Dalle Radier 35cm'] },
+      { id:'BTP-VRD', zone:'Génie Civil & Voirie', type:'Lot Voirie & Drainage Pluvial Bassa', rate:210000000, status:'cleaning', specs:['Terrassement 85%', 'Caniveaux Béton', 'Contrôle Labogenie'] },
+      { id:'ENGIN-B25', zone:'Parc Matériel & Centrales', type:'Centrale à Béton Automatisée 60 m³/h', rate:85000000, status:'available', specs:['Silo Ciment CEM II 42.5', 'Sonde Humidité', '4 Camions Toupie'] },
+      { id:'ENGIN-GRUE', zone:'Parc Matériel & Centrales', type:'Parc Grues à Tour & Pelles Hydrauliques', rate:140000000, status:'available', specs:['2 Grues Potain 45m', '3 Pelles CAT 320', 'Certificat APAVE'] },
+      { id:'LABO-BTP', zone:'Qualité & Sécurité HSE', type:'Laboratoire Éprouvettes Béton & Géotech', rate:28000000, status:'inspected', specs:['Essais Compression 28j', 'Zéro Accident HSE', 'Visa Bureau Contrôle'] }
+    ],
+    sugar: [
+      { id:'MRP-MOULIN', zone:'Extraction & Broyage', type:'Tandem Moulins à Canne & Pont-Bascule', rate:185000000, status:'occupied', specs:['Cadence: 120 Tonnes/h', 'Extraction Jus: 96,4%', 'Pesée Électronique'] },
+      { id:'MRP-CUITE', zone:'Évaporation & Cristallisation', type:'Batterie Chaudières & Cuites Sous Vide', rate:240000000, status:'occupied', specs:['Brix Sirop: 68,5°', 'Vapeur Basse Pression', 'Automate Siemens PLC'] },
+      { id:'MRP-TURB', zone:'Turbinage & Séchage', type:'Centrifugeuses Automatiques Sucre Blanc', rate:160000000, status:'available', specs:['Pureté: 99,8% Pol', 'Norme ICUMSA ≤ 45', 'Clairçage Vapeur'] },
+      { id:'SILO-BLANC', zone:'Stockage & Conditionnement', type:'Silo Climatise Sucre Blanc #1 (2 500 T)', rate:420000000, status:'available', specs:['Hygrométrie < 55%', 'Ensachage 50kg Auto', 'Traçabilité Lot QR'] },
+      { id:'SILO-ROUX', zone:'Stockage & Conditionnement', type:'Silo Sucre Roux & Cuve Mélasse #2', rate:195000000, status:'cleaning', specs:['Sucre Blond Canne', 'Citerne Mélasse 800T', 'Chargement Camion'] },
+      { id:'LABO-ICUMSA', zone:'Contrôle Qualité Raffinerie', type:'Laboratoire Polarimétrie & Colorimétrie', rate:45000000, status:'inspected', specs:['Saccharimètre Auto', 'Spectro450nm ICUMSA', 'Certificat ANOR'] }
+    ],
+    trade: [
+      { id:'PAD-QUAI14', zone:'Opérations Portuaires Douala', type:'Parc Conteneurs 40HQ Sous Douane PAD', rate:310000000, status:'occupied', specs:['12 Conteneurs Actifs', 'Franchise Surestaries', 'Tracking BL MSC/CMA'] },
+      { id:'SKD-LIGNE1', zone:'Atelier Assemblage Mécanique', type:'Chaîne Montage Motoculteurs & Tricycles', rate:145000000, status:'occupied', specs:['Cadence: 18 Unités/j', 'Banc Essai Moteur', 'Numéro Châssis Gravé'] },
+      { id:'CKD-GROUPES', zone:'Atelier Assemblage Mécanique', type:'Cellule Montage Groupes Électrogènes CKD', rate:225000000, status:'available', specs:['Gamme 20kVA à 250kVA', 'Capotage Insonorisé', 'Test Charge 100%'] },
+      { id:'GUCE-DOUANE', zone:'Dédouanement & Transit', type:'Cellule Déclarations Sydonia++ / GUCE', rate:88000000, status:'inspected', specs:['Tarif Extérieur CEMAC', 'Attestation SGS/BIVAC', 'BAE Express 48h'] },
+      { id:'ENTREPOT-B2B', zone:'Distribution & Logistique', type:'Hub Logistique & Pièces Détachées Akwa', rate:175000000, status:'available', specs:['Surface 4 500 m²', 'Gestion WMS Code-Barres', 'Stock Sécurité 90j'] },
+      { id:'CORRIDOR-CEMAC', zone:'Distribution & Logistique', type:'Flotte Camions Douala–Yaoundé–N’Djamena', rate:130000000, status:'occupied', specs:['Balise GPS Temps Réel', 'Carnet TIR / Transit', 'Livraison Grossistes'] }
+    ],
+    finance: [
+      { id:'OHADA-CL12', zone:'Haut de Bilan SYSCOHADA', type:'Classes 1 & 2 : Capitaux & Immobilisations', rate:8400000000, status:'inspected', specs:['Capital Social & Réserves', 'Tableau Amortissements', 'Conforme AUDCIF'] },
+      { id:'OHADA-CL34', zone:'Cycle Exploitation & Fiscal', type:'Classes 3 & 4 : Stocks, Clients (411), État (443)', rate:1920000000, status:'occupied', specs:['Lettrage Tiers Auto', 'TVA 19,25% & AIR 2,2%', 'Déclaration Mensuelle DGI'] },
+      { id:'OHADA-CL5', zone:'Trésorerie Multi-Banques', type:'Classe 5 : Banques CEMAC & Caisses (521/571)', rate:1450000000, status:'available', specs:['Afriland, BICEC, BGFI', 'Rapprochement Bancaire', 'Nivellement Cash-Pooling'] },
+      { id:'OHADA-CL6', zone:'Comptes de Gestion', type:'Classe 6 : Achats & Charges d’Exploitation', rate:2380000000, status:'occupied', specs:['Contrôle Budgétaire', 'Imputation Analytique', 'Visa Contrôle Interne'] },
+      { id:'OHADA-CL7', zone:'Comptes de Gestion', type:'Classe 7 : Chiffre d’Affaires & Produits', rate:3640000000, status:'available', specs:['Consolidation 9 Pôles', 'Marge Brute 34,8%', 'Facturation Certifiée'] },
+      { id:'LIASSE-DSF', zone:'États Financiers Annuels', type:'Cellule Bilan, Compte de Résultat & DSF', rate:520000000, status:'inspected', specs:['Système Normal OHADA', 'Équilibre Débit=Crédit', 'Prêt Signature DAF'] }
+    ],
+    hr: [
+      { id:'RH-CADRES', zone:'Collèges & Effectifs Groupe', type:'Collège Cadres Supérieurs & Ingénieurs (Cat. F–G)', rate:48500000, status:'available', specs:['42 Salariés Actifs', 'Contrats CDI OHADA', 'Évaluation Objectifs KPI'] },
+      { id:'RH-USINE', zone:'Collèges & Effectifs Groupe', type:'Opérateurs Raffinerie MRP & Atelier SKD (Cat. C–E)', rate:64200000, status:'occupied', specs:['118 Techniciens', 'Rotation 3×8 Quarts', 'Prime Rendement Usine'] },
+      { id:'RH-BTP', zone:'Collèges & Effectifs Groupe', type:'Compagnons BTP & Conducteurs Engins (Cat. B–D)', rate:52800000, status:'occupied', specs:['165 Ouvriers Chantier', 'Pointage Biométrique', 'Équipements EPI / HSE'] },
+      { id:'RH-SERVICES', zone:'Collèges & Effectifs Groupe', type:'Équipes Hôtel SCI Blue Ocean & Guichets BLEX', rate:31400000, status:'available', specs:['82 Collaborateurs', 'Service Client 24/7', 'Formation Continue'] },
+      { id:'PAIE-CNPS', zone:'Paie Réglementaire & Fiscalité', type:'Moteur Liquidation CNPS (4,2% / 11,2%) & DIPE', rate:24600000, status:'inspected', specs:['Plafond CNPS 750 000 XAF', 'Barème IRPP + CAC 10%', 'Crédit Foncier & RAV'] },
+      { id:'MED-TRAVAIL', zone:'Santé & Social', type:'Assurance Maladie Groupe & Comité Hygiène', rate:14200000, status:'available', specs:['Couverture 80% Famille', 'Visite Médicale Annuelle', 'Zéro Litige Inspection'] }
+    ],
+    digital: [
+      { id:'NODE-BUS', zone:'Infrastructure Cloud & ERP', type:'Enterprise Service Bus (ESB) — 9 Filiales', rate:45000000, status:'available', specs:['Uptime: 99,98%', 'Latence: 14 ms', 'Sync Temps Réel JSON/REST'] },
+      { id:'NODE-AI', zone:'Intelligence Artificielle', type:'Moteur AI Copilot : Détection Fraude & Anomalies', rate:68000000, status:'occupied', specs:['Scan Continu 9 ERP', 'Contrôle Seuils COBAC/DGI', 'Alertes Prédictives'] },
+      { id:'NODE-DB', zone:'Stockage & Haute Dispo', type:'Cluster PostgreSQL HA & Sauvegarde Chiffrée R2', rate:52000000, status:'inspected', specs:['Réplication Synchrone', 'Snapshot Horaire', 'Chiffrement AES-256'] },
+      { id:'NODE-QUEUE', zone:'Automatisation Workflows', type:'Orchestrateur Tâches Asynchrones (queue.job / cron)', rate:29000000, status:'available', specs:['142 Jobs / heure', 'Génération PDF Auto', 'Relances Automatiques'] },
+      { id:'NODE-SEC', zone:'Cyber-Sécurité & RBAC', type:'Passerelle Zero-Trust, WAF & Audit ir.model.access', rate:38000000, status:'inspected', specs:['Séparation 4 Postes/ERP', 'Journal SysLog Immuable', 'Protection Anti-DDoS'] },
+      { id:'NODE-POS', zone:'Terminaux Terrain', type:'Flotte 36 Terminaux Caisses POS, Tablettes & Douchettes', rate:31000000, status:'available', specs:['Mode Offline-First', 'Imprimantes Thermiques', 'Sync 4G / Fibre'] }
+    ]
+  };
+
   // Seed initial pipeline records for all 9 products so every product has active items at Steps 1, 2, 3, and 4!
   function seedDivisionRecords(t) {
     const records = {};
@@ -1551,10 +1710,14 @@
           ${stat(tr('TVA / Retenues Estimées (19,25%)','Est. Statutory VAT (19.25%)'), money(Math.round(totalVal * 0.1925)), tr('Calcul réglementaire CEMAC / DGI','CEMAC / Cameroon statutory rate'), 'receipt')}
         </div>
 
+        <div style="margin-bottom:20px">
+          ${renderDivisionSimulator(p)}
+        </div>
+
         ${panel(tr('File de Certification & Contrôle Réglementaire (Étape 3 → Étape 4 Direction)','Compliance, QC & Financial Audit Queue (Step 3 → Step 4 Boss)'), tr('Vérifiez les pièces justificatives et certifiez le dossier pour l’envoyer à la signature finale du Boss','Verify supporting records and certify to push to Step 4 Executive Sign-Off'), `
           <div class="table-wrap">
             <table class="data-table">
-              <thead><tr><th>Réf Dossier</th><th>Tiers / Lot</th><th>Désignation Opération</th><th>Étape Actuelle</th><th>Montant HT</th><th>TVA (19,25%)</th><th>Décision Contrôle / Audit</th></tr></thead>
+              <thead><tr><th>Réf Dossier</th><th>Tiers / Lot</th><th>Désignation Opération</th><th>Étape Actuelle</th><th>Montant HT</th><th>TVA / Retenue</th><th>Décision Contrôle & PDF</th></tr></thead>
               <tbody>
                 ${list.map(rec => `
                   <tr>
@@ -1565,7 +1728,10 @@
                     <td class="mono"><strong>${money(rec.amount)}</strong></td>
                     <td class="mono soft">${money(Math.round(rec.amount * 0.1925))}</td>
                     <td>
-                      ${rec.step === 3 ? btn('div-advance-step', `${icon('check')}${tr('Certifier & Envoyer au Boss (Étape 4) ✓','Certify & Send to Boss (Step 4) ✓')}`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : rec.step < 3 ? btn('div-advance-step', `${tr('Avancer vers Étape','Advance to Step')} ${rec.step+1} →`, 'outline btn-small', `data-id="${esc(rec.id)}"`) : `<span class="status confirmed">✓ Transmis Étape 4</span>`}
+                      <div class="toolbar-group">
+                        ${rec.step === 3 ? btn('div-advance-step', `${icon('check')}${tr('Certifier → Boss (Étape 4)','Certify → Boss (Step 4)')}`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : rec.step < 3 ? btn('div-advance-step', `${tr('Avancer Étape','Advance Step')} ${rec.step+1} →`, 'outline btn-small', `data-id="${esc(rec.id)}"`) : `<span class="status confirmed">✓ Étape 4</span>`}
+                        ${btn('print-div-record', `🖨 PDF`, 'outline btn-small', `data-id="${esc(rec.id)}"`)}
+                      </div>
                     </td>
                   </tr>
                 `).join('')}
@@ -1597,10 +1763,14 @@
         ${stat(tr('Référentiel Open-Source','GitHub ERP Architecture'), p.num, esc(p.repo), 'shield')}
       </div>
 
+      <div style="margin-bottom:20px">
+        ${renderDivisionSimulator(p)}
+      </div>
+
       ${panel(tr('Registre Start-to-End & Signature Finale Direction (Étapes 1 → 4)','End-to-End Flowchart Register & Executive Final Sign-Off'), tr('Suivez chaque dossier depuis sa saisie au guichet (Étape 1) jusqu’à l’approbation finale du Boss (Étape 4)','Track every record from frontline intake (Step 1) through field execution (Step 2) and audit (Step 3) to Boss sign-off (Step 4)'), `
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>ID</th><th>Client / Entité</th><th>Opération / Lot</th><th>Progression Flowchart</th><th>Montant</th><th>Opérateur</th><th>Action Direction</th></tr></thead>
+            <thead><tr><th>ID</th><th>Client / Entité</th><th>Opération / Lot</th><th>Progression Flowchart</th><th>Montant</th><th>Opérateur</th><th>Action Direction & PDF</th></tr></thead>
             <tbody>
               ${list.map(rec => `
                 <tr>
@@ -1615,7 +1785,10 @@
                   <td class="mono"><strong>${money(rec.amount)}</strong></td>
                   <td><span class="soft">${esc(rec.operator)}</span></td>
                   <td>
-                    ${rec.step < 4 ? btn('div-advance-step', `${tr('Avancer Étape','Advance Step')} ${rec.step+1} →`, 'outline btn-small', `data-id="${esc(rec.id)}"`) : !rec.approvedByBoss ? btn('div-boss-approve', `★ ${tr('Signer & Clôturer [END]','Sign & Close [END]')}`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : `<span class="status confirmed">✓ Signé PDG</span>`}
+                    <div class="toolbar-group">
+                      ${rec.step < 4 ? btn('div-advance-step', `${tr('Avancer Étape','Advance Step')} ${rec.step+1} →`, 'outline btn-small', `data-id="${esc(rec.id)}"`) : !rec.approvedByBoss ? btn('div-boss-approve', `★ ${tr('Signer & Clôturer [END]','Sign & Close [END]')}`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : `<span class="status confirmed">✓ Signé PDG</span>`}
+                      ${btn('print-div-record', `🖨 PDF`, 'outline btn-small', `data-id="${esc(rec.id)}"`)}
+                    </div>
                   </td>
                 </tr>
               `).join('')}
@@ -1668,12 +1841,15 @@
     const allowedViews = roles[role]?.views || roles.direction.views;
     let prev = -1;
     $('#mainNav').innerHTML = allowedViews.map(id => {
-      const x = navigation.find(v => v.id === id);
+      const x = navItemMeta(id, p.id);
       if (!x) return '';
       const groupHeader = x.group !== prev ? `<div class="nav-section">${[tr('POSTE & PILOTAGE','TERMINAL & PILOTAGE'), tr('EXPLOITATION & TERRAIN','OPERATIONS & FIELD'), tr('CONTRÔLE & SYSTÈME','AUDIT & SYSTEM')][x.group]}</div>` : '';
       prev = x.group;
       const counts = stepCountsFor(p.id);
-      const badge = id === 'overview' ? (counts[1] + counts[2] + counts[3]) : id === 'bookings' ? db.bookings.filter(b => b.status === 'confirmed').length : id === 'folios' ? db.folios.filter(f => f.status === 'open').length : id === 'maintenance' ? db.maintenance.filter(m => m.stage !== 'resolved').length : 0;
+      const divList = db.divisionRecords[p.id] || [];
+      const badge = id === 'overview' ? (counts[1] + counts[2] + counts[3])
+        : p.id === 'property' ? (id === 'bookings' ? db.bookings.filter(b => b.status === 'confirmed').length : id === 'folios' ? db.folios.filter(f => f.status === 'open').length : id === 'maintenance' ? db.maintenance.filter(m => m.stage !== 'resolved').length : 0)
+        : (id === 'bookings' ? divList.length : id === 'folios' ? counts[3] + counts[4] : id === 'rooms' ? (DIV_UNITS_SEED[p.id]?.length || 6) : 0);
       const label = id === 'overview' ? tr(currentRoleMeta().fr, currentRoleMeta().en) : tr(x.fr, x.en);
       return `${groupHeader}<button type="button" class="nav-item ${view===id?'active':''}" data-view="${id}" ${view===id?'aria-current="page"':''}>${icon(x.icon)}<span>${esc(label)}</span>${badge > 0 ? `<span class="nav-badge">${badge}</span>` : ''}</button>`;
     }).join('');
@@ -1701,7 +1877,7 @@
     }
 
     const rMeta = currentRoleMeta();
-    const item = navigation.find(x => x.id === view) || navigation[0];
+    const item = navItemMeta(view, p.id);
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
 
@@ -1712,8 +1888,8 @@
     if ($('#activeRoleCode')) $('#activeRoleCode').textContent = rMeta.badge;
     if ($('#userAvatar')) $('#userAvatar').textContent = rMeta.badge.slice(0, 2);
 
-    const titleText = view === 'overview' ? `${tr(rMeta.fr, rMeta.en)} — ${tr(p.nameFr, p.nameEn)}` : tr(item.fr, item.en);
-    const descText = view === 'overview' ? `${tr(rMeta.descFr, rMeta.descEn)} (Architecture GitHub : ${p.repo})` : tr(item.descFr, item.descEn);
+    const titleText = view === 'overview' ? `${tr(rMeta.fr, rMeta.en)} — ${tr(p.nameFr, p.nameEn)}` : `${tr(item.fr, item.en)}${p.id !== 'property' ? ` — ${tr(p.nameFr, p.nameEn)}` : ''}`;
+    const descText = view === 'overview' ? `${tr(rMeta.descFr, rMeta.descEn)} (Architecture GitHub : ${p.repo})` : `${tr(item.descFr, item.descEn)} (${p.odooModel})`;
 
     $('#pageTitle').innerHTML = `${esc(titleText)}<span class="heading-dot">.</span>`;
     $('#pageDescription').textContent = descText;
@@ -1749,7 +1925,13 @@
     if (view === 'overview') {
       return `
         ${btn('open-login-gate', `⊞ ${tr('Changer Produit / Poste (9 ERP)','Switch Product / Role (9 ERP)')}`, 'outline')}
-        ${p.id === 'property' && can('booking') ? btn('new-booking', `${icon('plus')}${tr('Nouvelle Réservation','New Booking')}`, 'primary') : ''}
+        ${p.id === 'property' && can('booking') ? btn('new-booking', `${icon('plus')}${tr('Nouvelle Réservation','New Booking')}`, 'primary') : btn('switch-role-step', `${icon('plus')}${tr('Saisie Guichet (Étape 1)','New Step 1 Entry')}`, 'primary', 'data-role="service"')}
+      `;
+    }
+    if (p.id !== 'property') {
+      return `
+        ${btn('open-login-gate', `⊞ ${tr('Portail 9 Produits','9-Product Portal')}`, 'outline')}
+        ${btn('switch-role-step', `${icon('plus')}${tr('Nouveau Dossier (Étape 1)','New Step 1 Entry')}`, 'primary', 'data-role="service"')}
       `;
     }
     switch (view) {
@@ -1765,6 +1947,47 @@
   }
 
   function renderRooms() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const units = DIV_UNITS_SEED[p.id] || DIV_UNITS_SEED.holding;
+      const byZone = {};
+      units.forEach(u => {
+        if (filter && !`${u.id} ${u.type} ${u.zone} ${u.specs.join(' ')}`.toLowerCase().includes(filter.toLowerCase())) return;
+        byZone[u.zone] = byZone[u.zone] || [];
+        byZone[u.zone].push(u);
+      });
+      return `
+        <div class="toolbar">
+          <p class="hint">${units.length} ${tr('unités opérationnelles, lignes industrielles ou coffres actifs — ','active operational units, industrial lines or vaults — ')}<b>${esc(p.odooModel)}</b></p>
+          <label class="search-field">${icon('search')}<input id="searchInput" data-filter placeholder="${tr('Rechercher unité, ligne, coffre, chantier...','Search unit, line, vault, site...')}" value="${esc(filter)}" /></label>
+        </div>
+        ${Object.keys(byZone).map(zKey => `
+          <div class="floor-section">
+            <div class="floor-header">${esc(zKey)} · ${byZone[zKey].length} ${tr('unités','units')}</div>
+            <div class="rooms-grid">
+              ${byZone[zKey].map(u => `
+                <article class="room-card">
+                  <div class="room-head">
+                    <div><div class="room-number mono" style="font-size:20px">${esc(u.id)}</div><div class="room-type">${esc(u.type)}</div></div>
+                    ${statusChip(u.status)}
+                  </div>
+                  <div>
+                    <div class="amenity-chips">${u.specs.map(a => `<span class="amenity-chip">${esc(a)}</span>`).join('')}</div>
+                    <p class="hint" style="margin-top:10px">${tr('Valorisation / Capacité Active','Active Valuation / Capacity')}</p>
+                    <p class="room-price mono">${money(u.rate)}</p>
+                  </div>
+                  <div class="room-actions">
+                    ${btn('switch-role-step', `${icon('plus')}${tr('Opérer (Étape 1)','Operate (Step 1)')}`, 'primary btn-small', 'data-role="service"')}
+                    ${btn('switch-role-step', `${tr('Kanban (Étape 2)','Kanban (Step 2)')}`, 'outline btn-small', 'data-role="housekeeping"')}
+                  </div>
+                </article>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      `;
+    }
+
     const floors = ['all', 'RDC', '1e', '2e'];
     const floorPills = floors.map(f => `<button class="pill ${floorFilter===f?'active':''}" data-floor-filter="${f}">${f==='all'?tr('Tous les étages','All floors'):tr(`Étage ${f}`,`Floor ${f}`)}</button>`).join('');
     const statuses = ['all','available','occupied','dirty','cleaning','inspected','maintenance'];
@@ -1808,6 +2031,48 @@
   }
 
   function renderBookings() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const list = (db.divisionRecords[p.id] || []).filter(rec => `${rec.id} ${rec.client} ${rec.itemFr} ${rec.itemEn} ${rec.category}`.toLowerCase().includes(filter.toLowerCase()));
+      return `
+        <div class="toolbar">
+          <div class="toolbar-group">
+            <label class="search-field">${icon('search')}<input id="searchInput" data-filter placeholder="${tr('Rechercher réf, client, lot, opération...','Search ref, client, batch, operation...')}" value="${esc(filter)}"/></label>
+          </div>
+          <p class="hint">${list.length} ${tr('dossiers opérationnels actifs dans le Flowchart','active operational dossiers in Flowchart')} (${esc(p.odooModel)})</p>
+        </div>
+        <section class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Réf ERP</th><th>${tr('Client / Entité / Lot','Counterparty / Batch')}</th><th>${tr('Catégorie Métier','Category')}</th><th>${tr('Opération','Operation')}</th><th>${tr('Étape Flowchart','Flowchart Step')}</th><th>${tr('Montant Total','Total Amount')}</th><th>${tr('Actions & Pièce PDF','Actions & Official PDF')}</th></tr></thead>
+              <tbody>
+                ${list.map(rec => `
+                  <tr>
+                    <td><strong class="mono">${esc(rec.id)}</strong><div class="soft">${esc(rec.date)}</div></td>
+                    <td><strong>${esc(rec.client)}</strong><div class="soft">${esc(rec.operator)}</div></td>
+                    <td><span class="pill">${esc(rec.category)}</span></td>
+                    <td>${esc(tr(rec.itemFr, rec.itemEn))} <span class="soft">(×${rec.qty})</span></td>
+                    <td>
+                      <span class="status ${rec.step===4?'confirmed':rec.step===3?'cleaning':'occupied'}">
+                        ${rec.step===1?'▶ Étape 1 (Guichet)':rec.step===2?'⚙ Étape 2 (Terrain)':rec.step===3?'🛡 Étape 3 (Audit)':rec.approvedByBoss?'★ Clôturé Boss':'★ Étape 4 (Direction)'}
+                      </span>
+                    </td>
+                    <td class="mono"><strong>${money(rec.amount)}</strong></td>
+                    <td>
+                      <div class="toolbar-group">
+                        ${rec.step < 4 ? btn('div-advance-step', `Étape ${rec.step+1} →`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : !rec.approvedByBoss ? btn('div-boss-approve', `★ Signer`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : `<span class="status confirmed">✓ Signé</span>`}
+                        ${btn('print-div-record', `🖨 PDF`, 'outline btn-small', `data-id="${esc(rec.id)}"`)}
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
     const matched = db.bookings.filter(b => (bookingFilter === 'all' || b.status === bookingFilter) && (!selectedDate || (b.arrival <= selectedDate && b.departure > selectedDate)) && (`${b.id} ${guestFor(b.guestId).name} ${b.roomId}`.toLowerCase().includes(filter.toLowerCase()))).sort((a,b) => a.arrival.localeCompare(b.arrival));
     const statuses = ['all','confirmed','checked-in','checked-out','cancelled'];
     return `
@@ -1847,6 +2112,50 @@
   }
 
   function renderFolios() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const list = db.divisionRecords[p.id] || [];
+      const sumHT = list.reduce((a, r) => a + r.amount, 0);
+      const taxRate = p.id === 'hr' ? 0.042 : p.id === 'blex' ? 0.015 : 0.1925;
+      const taxLabel = p.id === 'hr' ? 'Cotisation CNPS (4,2%)' : p.id === 'blex' ? 'Commission & Taxe Change (1,5%)' : p.id === 'construction' ? 'TVA 19,25% (Retenue 10% suivie)' : 'TVA / Droits Réglementaires (19,25%)';
+      const sumTax = Math.round(sumHT * taxRate);
+      const sumTTC = p.id === 'hr' ? (sumHT - sumTax) : (sumHT + sumTax);
+
+      return `
+        <div class="bill-summary" style="margin-bottom:20px">
+          <div><span>${tr('Volume Brut H.T. Consolidé','Gross Base Volume (HT)')}</span><strong class="mono">${money(sumHT)}</strong></div>
+          <div><span>${esc(taxLabel)}</span><strong class="mono" style="color:#2a7e71">${money(sumTax)}</strong></div>
+          <div><span>${tr('Total Net Liquidé / TTC','Total Net Settled / TTC')}</span><strong class="mono">${money(sumTTC)}</strong></div>
+        </div>
+        <section class="panel">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Pièce / Bordereau</th><th>Tiers / Entité</th><th>Désignation</th><th>Base H.T. / Brut</th><th>${esc(taxLabel)}</th><th>Net / TTC</th><th>Mode Règlement</th><th>Étape</th><th>Pièce Officielle</th></tr></thead>
+              <tbody>
+                ${list.map(rec => {
+                  const tx = Math.round(rec.amount * taxRate);
+                  const net = p.id === 'hr' ? (rec.amount - tx) : (rec.amount + tx);
+                  return `
+                    <tr>
+                      <td><strong class="mono">LIQ-${esc(rec.id)}</strong></td>
+                      <td><strong>${esc(rec.client)}</strong></td>
+                      <td>${esc(tr(rec.itemFr, rec.itemEn))}</td>
+                      <td class="mono">${money(rec.amount)}</td>
+                      <td class="mono soft">${money(tx)}</td>
+                      <td class="mono"><strong>${money(net)}</strong></td>
+                      <td><span class="pill">${esc(rec.paymentMethod)}</span></td>
+                      <td><span class="status ${rec.step>=3?'confirmed':'occupied'}">Étape ${rec.step}/4</span></td>
+                      <td>${btn('print-div-record', `🖨 ${tr('Imprimer Pièce','Print Slip')}`, 'outline btn-small', `data-id="${esc(rec.id)}"`)}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
     const matched = db.folios.filter(f => (folioFilter === 'all' || f.status === folioFilter) && (`${f.id} ${guestFor(f.guestId).name} ${f.roomId} ${f.bookingId}`.toLowerCase().includes(filter.toLowerCase()))).sort((a,b) => b.id.localeCompare(a.id));
     let sumRoom = 0, sumService = 0, sumGross = 0, sumBal = 0;
     matched.forEach(f => { const m = folioMetrics(f); sumRoom += m.roomTotal; sumService += m.serviceTotal; sumGross += m.totalGross; sumBal += m.balance; });
@@ -1899,17 +2208,134 @@
     `;
   }
 
+  function renderDivisionSimulator(p) {
+    const simMeta = {
+      blex: {
+        titleFr: 'Simulateur Temps-Réel Change FX & Contrôle Seuil LBC/FT COBAC',
+        titleEn: 'Live FX Currency Spread & COBAC AML Threshold Simulator',
+        subFr: 'Parité fixe EUR/XAF = 655,957 · Alerte réglementaire ANIF/COBAC automatique dès 5 000 000 FCFA',
+        subEn: 'Fixed EUR/XAF = 655.957 peg · Mandatory ANIF/COBAC AML declaration triggered at >= 5,000,000 FCFA',
+        labelA: 'Montant en Devise (EUR / USD)', valA: 10000,
+        labelB: 'Cours Appliqué (XAF / Unité)', valB: 665,
+        labelC: 'Spread / Commission BLEX (%)', valC: 1.5,
+        btnFr: 'Créer Bordereau FX & Vérifier KYC COBAC →', btnEn: 'Generate FX Slip & Run COBAC Check →'
+      },
+      sugar: {
+        titleFr: 'Calculateur Industriel de Rendement Canne → Sucre Blanc ICUMSA 45',
+        titleEn: 'Industrial Cane-to-Sugar Yield & ICUMSA 45 Lab Calculator',
+        subFr: 'Bilan massique : Tonnage Canne × Richesse Saccharose (Pol °Z) × Extraction Moulin = Tonnes Sucre Raffiné & Sacs 50kg',
+        subEn: 'Mass balance: Cane Tonnage × Sucrose Pol % × Mill Extraction = Refined Sugar Output & 50kg Bags',
+        labelA: 'Tonnage Canne Broyée (Tonnes)', valA: 500,
+        labelB: 'Rendement Extraction Sucre (%)', valB: 11,
+        labelC: 'Prix de Cession Sac 50kg (FCFA)', valC: 42000,
+        btnFr: 'Lancer l’Ordre de Fabrication MRP (mrp.production) →', btnEn: 'Launch Manufacturing Order (mrp.production) →'
+      },
+      construction: {
+        titleFr: 'Simulateur de Décompte Provisoire BTP, Retenue de Garantie (10%) & TVA/AIR',
+        titleEn: 'BTP Progress Billing (BOQ), 10% Retention Guarantee & Tax Calculator',
+        subFr: 'Calcul automatique : Travaux HT − Retenue de Garantie 10% + TVA 19,25% − Précompte AIR 2,2% = Net à Mandater',
+        subEn: 'Auto-compute: Gross Works HT - 10% Retention + 19.25% VAT - 2.2% WHT = Net Payable Certificate',
+        labelA: 'Montant Brut Travaux Réalisés HT (FCFA)', valA: 25000000,
+        labelB: 'Taux Avancement Physique du Lot (%)', valB: 100,
+        labelC: 'Retenue de Garantie Légale (%)', valC: 10,
+        btnFr: 'Émettre le Certificat pour Paiement / Décompte BTP →', btnEn: 'Issue BTP Progress Payment Certificate →'
+      },
+      trade: {
+        titleFr: 'Calculateur de Coût d’Approche Port de Douala (CAF + Douane CEMAC + GUCE)',
+        titleEn: 'Port of Douala Landed Cost & CEMAC Customs Duty Calculator',
+        subFr: 'Liquidation Sydonia/GUCE : Valeur CAF + Tarif Extérieur Commun (TEC 10%–30%) + TVA Import 19,25% + Acconage PAD',
+        subEn: 'Customs liquidation: CIF Value + CEMAC Common Tariff (10%-30%) + 19.25% Import VAT + Port Handling',
+        labelA: 'Valeur CAF / CIF Conteneur (FCFA)', valA: 15000000,
+        labelB: 'Droit de Douane TEC CEMAC (%)', valB: 20,
+        labelC: 'Frais PAD, GUCE & Acconage (FCFA)', valC: 850000,
+        btnFr: 'Valider Liquidation Douane GUCE & Coût de Revient →', btnEn: 'Submit GUCE Customs & Landed Cost Dossier →'
+      },
+      finance: {
+        titleFr: 'Simulateur d’Imputation SYSCOHADA Révisé, TVA (19,25%) & Précompte AIR (2,2%)',
+        titleEn: 'SYSCOHADA Double-Entry Journal, 19.25% VAT & 2.2% AIR Tax Simulator',
+        subFr: 'Équilibre Débit = Crédit obligatoire (Comptes Classes 1 à 8) · Calcul instantané TVA 443/445 et retenue AIR 447',
+        subEn: 'Mandatory Debit = Credit validation (Classes 1-8) · Instant 19.25% VAT and 2.2% WHT calculation',
+        labelA: 'Montant Hors Taxes de la Pièce (FCFA)', valA: 10000000,
+        labelB: 'Taux TVA Cameroun (%)', valB: 19.25,
+        labelC: 'Retenue à la Source AIR (%)', valC: 2.2,
+        btnFr: 'Passer l’Écriture Comptable au Journal (account.move) →', btnEn: 'Post Balanced Journal Entry (account.move) →'
+      },
+      hr: {
+        titleFr: 'Calculateur Officiel de Bulletin de Paie Cameroun (CNPS 4,2% · IRPP · CAC · CFC · RAV)',
+        titleEn: 'Cameroon Statutory Payslip Calculator (CNPS 4.2% · IRPP · CAC · CFC · RAV)',
+        subFr: 'Plafond légal CNPS PVID : 750 000 FCFA/mois (max 31 500 FCFA salarié) + Crédit Foncier 1% + RAV + Charges Patronales 11,2%',
+        subEn: 'Statutory CNPS ceiling: 750,000 FCFA/mo (max 31,500 FCFA employee) + 1% Housing Fund + RAV + 11.2% Employer CNPS',
+        labelA: 'Salaire Brut Mensuel Effectif (FCFA)', valA: 850000,
+        labelB: 'Nombre de Salariés du Lot', valB: 10,
+        labelC: 'Taux Cotisation Patronale CNPS (%)', valC: 11.2,
+        btnFr: 'Générer le Lot de Bulletins de Paie & DIPE →', btnEn: 'Generate Statutory Payslip Batch & DIPE →'
+      },
+      holding: {
+        titleFr: 'Simulateur Comité d’Investissement CAPEX : VAN (NPV), TRI (IRR) & Dividendes Groupe',
+        titleEn: 'Board CAPEX Investment Committee: NPV, IRR & Consolidated Dividend Simulator',
+        subFr: 'Évaluation financière des projets d’expansion des 9 filiales et élimination des flux intragroupe SYSCOHADA',
+        subEn: 'Financial modeling for subsidiary expansion projects and intercompany elimination',
+        labelA: 'Enveloppe CAPEX Sollicitée (FCFA)', valA: 120000000,
+        labelB: 'Cash-Flow Annuel Prévisionnel (FCFA)', valB: 45000000,
+        labelC: 'Quote-Part Détention Holding (%)', valC: 100,
+        btnFr: 'Inscrire la Résolution à l’Ordre du Jour du Conseil →', btnEn: 'Submit CAPEX Resolution to Board Pipeline →'
+      },
+      digital: {
+        titleFr: 'Scanner IA Copilot : Audit d’Anomalies Multi-Filiales & Conformité RBAC',
+        titleEn: 'AI Copilot Scanner: Cross-Subsidiary Anomaly Audit & RBAC Compliance',
+        subFr: 'Inspection heuristique en temps réel des 9 bases ERP (seuils COBAC, soldes ouverts, écarts de rendement)',
+        subEn: 'Real-time heuristic scan across all 9 ERP databases (COBAC thresholds, open balances, yield variances)',
+        labelA: 'Seuil d’Alerte Transactionnelle (FCFA)', valA: 5000000,
+        labelB: 'Filiales Scannées Simultanément', valB: 9,
+        labelC: 'Score de Confiance IA Minimum (%)', valC: 95,
+        btnFr: 'Générer Rapport d’Audit IA & Créer Ticket Sécurité →', btnEn: 'Run AI Anomaly Scan & Log Security Ticket →'
+      }
+    }[p.id];
+
+    if (!simMeta) return '';
+
+    return panel(
+      tr(simMeta.titleFr, simMeta.titleEn),
+      tr(simMeta.subFr, simMeta.subEn),
+      `<form data-form="div-simulator" class="stack">
+        <div class="form-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+          <div class="form-field">
+            <label>${esc(simMeta.labelA)}</label>
+            <input type="number" name="simA" value="${simMeta.valA}" step="any" required />
+          </div>
+          <div class="form-field">
+            <label>${esc(simMeta.labelB)}</label>
+            <input type="number" name="simB" value="${simMeta.valB}" step="any" required />
+          </div>
+          <div class="form-field">
+            <label>${esc(simMeta.labelC)}</label>
+            <input type="number" name="simC" value="${simMeta.valC}" step="any" required />
+          </div>
+        </div>
+        <div class="form-field">
+          <label>${tr('Entité / Client / Référence du Lot','Target Counterparty / Batch Reference')}</label>
+          <input type="text" name="simClient" value="Simulation Métier — ${esc(tr(p.nameFr, p.nameEn))}" required />
+        </div>
+        <div class="form-actions" style="margin-top:4px;justify-content:space-between;align-items:center">
+          <span class="hint">${tr('Le calcul crée automatiquement un dossier chiffré avec pièce justificative PDF dans le Flowchart.','Calculation automatically creates a priced dossier with an official printable PDF in the Flowchart.')}</span>
+          <button type="submit" class="btn btn-primary">${icon('check')}${esc(tr(simMeta.btnFr, simMeta.btnEn))}</button>
+        </div>
+      </form>`
+    );
+  }
+
   function renderServices() {
     const p = currentProduct();
     const items = p.catalog.length ? p.catalog : db.services;
     return `
       <div class="overview-intro" style="margin-bottom:20px">
         <div>
-          <div class="overline">CATALOGUE OPÉRATIONNEL & TARIFICATION — ${esc(p.repo.toUpperCase())}</div>
+          <div class="overline">CATALOGUE OPÉRATIONNEL & SIMULATEUR MÉTIER — ${esc(p.repo.toUpperCase())}</div>
           <h2>${esc(tr(p.nameFr, p.nameEn))}</h2>
-          <p>${tr('Catalogue officiel des prestations, lots industriels et opérations de guichet pour ce produit.','Official catalog of services, industrial batches and counter operations for this division.')}</p>
+          <p>${tr('Barème officiel, moteur de calcul réglementaire et opérations de guichet pour cette filiale.','Official tariff schedule, statutory calculation engine and counter operations for this division.')}</p>
         </div>
       </div>
+      ${p.id !== 'property' ? `<div style="margin-bottom:20px">${renderDivisionSimulator(p)}</div>` : ''}
       <div class="service-grid">
         ${items.map(s => `
           <article class="service-card">
@@ -1933,15 +2359,18 @@
     const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
     const offset = (first.getUTCDay() + 6) % 7;
     const weekday = lang === 'fr' ? ['LUN','MAR','MER','JEU','VEN','SAM','DIM'] : ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+    const p = currentProduct();
     const cells = Array.from({length: Math.ceil((last + offset) / 7) * 7}, (_, i) => {
       const d = i - offset + 1;
       if (d < 1 || d > last) return '<div class="cal-day muted" aria-hidden="true"></div>';
       const iso = `${monthCursor}-${String(d).padStart(2,'0')}`;
-      const items = db.bookings.filter(b => b.status !== 'cancelled' && b.arrival <= iso && b.departure > iso);
+      const items = p.id === 'property'
+        ? db.bookings.filter(b => b.status !== 'cancelled' && b.arrival <= iso && b.departure > iso).map(b => ({ label: `${b.roomId} · ${guestFor(b.guestId).name}`, active: b.status === 'checked-in' }))
+        : (db.divisionRecords[p.id] || []).filter((_, idx) => ((d + idx) % 6 === 0)).map(r => ({ label: `${r.id} · ${r.client}`, active: r.step >= 2 }));
       return `<button class="cal-day ${iso === todayISO() ? 'today' : ''}" data-cal-date="${iso}">
         <span class="cal-num">${d}</span>
         <div class="cal-chips">
-          ${items.slice(0, 2).map(b => `<span class="cal-chip ${b.status==='checked-in'?'hotel':''}">${esc(b.roomId)} · ${esc(guestFor(b.guestId).name)}</span>`).join('')}
+          ${items.slice(0, 2).map(it => `<span class="cal-chip ${it.active?'hotel':''}">${esc(it.label)}</span>`).join('')}
           ${items.length > 2 ? `<span class="cal-chip more">+${items.length-2}</span>` : ''}
         </div>
       </button>`;
@@ -1950,7 +2379,7 @@
     return `
       <section class="panel calendar-panel">
         <div class="calendar-top">
-          <div><h2 class="calendar-month">${esc(monthTitle)}</h2><p class="panel-sub">${tr('Planning des chambres et opérations Odoo','Odoo allocation and schedule board')}</p></div>
+          <div><h2 class="calendar-month">${esc(monthTitle)}</h2><p class="panel-sub">${esc(tr(p.nameFr, p.nameEn))} — ${tr('Planning opérationnel & jalons','Operational schedule & milestones')}</p></div>
           <div class="toolbar-group">
             ${btn('month-prev', icon('chevronLeft'), 'outline btn-small')}
             ${btn('month-today', tr("Aujourd'hui",'Today'), 'outline btn-small')}
@@ -1963,6 +2392,31 @@
   }
 
   function renderGuests() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const list = db.divisionRecords[p.id] || [];
+      return `
+        <div class="toolbar">
+          <p class="hint">${list.length} ${tr('contreparties, fournisseurs, chantiers ou salariés actifs dans cette filiale','active counterparties, suppliers, sites or staff in this division')}</p>
+          <label class="search-field">${icon('search')}<input data-filter id="searchInput" value="${esc(filter)}" placeholder="${tr('Rechercher un tiers, matricule, entité...','Search counterparty, ID, entity...')}"/></label>
+        </div>
+        <div class="guest-grid">
+          ${list.filter(r => `${r.client} ${r.id} ${r.category} ${r.operator}`.toLowerCase().includes(filter.toLowerCase())).map(r => `
+            <article class="guest-card">
+              <div class="inline-flex" style="justify-content:space-between;width:100%">
+                <div class="guest-avatar">${esc(r.client.split(/\s+/).slice(0,2).map(s=>s[0]||'B').join('').toUpperCase())}</div>
+                <span class="pill active">${esc(r.category)}</span>
+              </div>
+              <h3>${esc(r.client)}</h3>
+              <p>${esc(tr(r.itemFr, r.itemEn))}</p>
+              <div class="quiet-box" style="margin:8px 0;padding:8px 10px;font-size:10px">${tr('Responsable :','Handler:')} <b>${esc(r.operator)}</b> · ${esc(r.paymentMethod)}</div>
+              <div class="guest-meta"><span>Volume : <b class="mono">${money(r.amount)}</b></span><span class="mono">Étape ${r.step}/4</span></div>
+            </article>
+          `).join('')}
+        </div>
+      `;
+    }
+
     const matched = db.guests.filter(g => `${g.name} ${g.email} ${g.phone} ${g.notes}`.toLowerCase().includes(filter.toLowerCase()));
     return `
       <div class="toolbar">
@@ -1990,6 +2444,15 @@
   }
 
   function renderHousekeeping() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const prevRole = role;
+      role = 'housekeeping';
+      const html = renderDivisionRoleTerminal(p);
+      role = prevRole;
+      return html;
+    }
+
     const pendingTasks = db.tasks.filter(t => t.status === 'pending');
     const dirtyRooms = db.rooms.filter(r => r.status === 'dirty' || r.status === 'cleaning');
     const inspectedRooms = db.rooms.filter(r => r.status === 'inspected');
@@ -2069,6 +2532,52 @@
   }
 
   function renderAudit() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const list = db.divisionRecords[p.id] || [];
+      const counts = stepCountsFor(p.id);
+      const totalVol = list.reduce((a, r) => a + r.amount, 0);
+      return `
+        <div class="audit-box">
+          <h3>${esc(tr(p.flow[2].titleFr, p.flow[2].titleEn))} — ${esc(tr(p.nameFr, p.nameEn))}</h3>
+          <p>${esc(tr(p.flow[2].descFr, p.flow[2].descEn))} (${esc(p.odooModel)})</p>
+          <div class="audit-kpis">
+            <div class="audit-kpi"><span>Dossiers Étape 3 (Audit)</span><strong>${counts[3]}</strong></div>
+            <div class="audit-kpi"><span>Certifiés Étape 4 (Boss)</span><strong>${counts[4]}</strong></div>
+            <div class="audit-kpi"><span>Volume Sous Contrôle</span><strong>${money(totalVol)}</strong></div>
+            <div class="audit-kpi"><span>TVA / Droits (19,25%)</span><strong>${money(Math.round(totalVol * 0.1925))}</strong></div>
+          </div>
+          <div style="margin-top:22px">
+            ${btn('div-audit-certify-all', `${icon('check')}${tr('Certifier tous les dossiers Étape 3 → Envoyer au Boss (Étape 4)','Certify All Step 3 Dossiers → Push to Boss (Step 4)')}`, 'primary')}
+          </div>
+        </div>
+        ${panel(tr('Registre de Contrôle Réglementaire & Pièces Officielles','Statutory Audit Register & Official Certificates'), tr('Cliquez sur PDF pour éditer le certificat officiel (COBAC, ICUMSA 45, GUCE, SYSCOHADA, CNPS)','Click PDF to print the official statutory certificate for any record'), `
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Réf</th><th>Tiers / Lot</th><th>Opération</th><th>Montant</th><th>Statut Flowchart</th><th>Certification & PDF</th></tr></thead>
+              <tbody>
+                ${list.map(rec => `
+                  <tr>
+                    <td><strong class="mono">${esc(rec.id)}</strong></td>
+                    <td><strong>${esc(rec.client)}</strong></td>
+                    <td>${esc(tr(rec.itemFr, rec.itemEn))}</td>
+                    <td class="mono"><strong>${money(rec.amount)}</strong></td>
+                    <td><span class="status ${rec.step>=3?'confirmed':'occupied'}">Étape ${rec.step}/4</span></td>
+                    <td>
+                      <div class="toolbar-group">
+                        ${rec.step < 4 ? btn('div-advance-step', `Certifier → Étape ${rec.step+1}`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : `<span class="status confirmed">✓ Certifié</span>`}
+                        ${btn('print-div-record', `🖨 Certificat PDF`, 'outline btn-small', `data-id="${esc(rec.id)}"`)}
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `)}
+      `;
+    }
+
     const m = hospitalityMetrics();
     return `
       <div class="audit-box">
@@ -2522,6 +3031,86 @@
         }
         break;
       }
+      case 'div-audit-certify-all': {
+        const p = currentProduct();
+        const list = db.divisionRecords[p.id] || [];
+        let certifiedCount = 0;
+        list.forEach(r => {
+          if (r.step < 4) { r.step = 4; certifiedCount += 1; }
+        });
+        save('div-audit-certify-all', `${p.id}:${certifiedCount}`);
+        render();
+        notify(tr(`${certifiedCount} dossier(s) certifié(s) conforme(s) et transmis à la Direction Générale (Étape 4) !`, `${certifiedCount} dossier(s) certified and pushed to Step 4 Boss!`));
+        break;
+      }
+      case 'print-div-record': {
+        const p = currentProduct();
+        const list = db.divisionRecords[p.id] || [];
+        const rec = list.find(r => r.id === id) || list[0];
+        if (!rec) break;
+        const docTitles = {
+          holding: ['Résolution Comité CAPEX & Consolidation OHADA', 'CAPEX Board Resolution & Consolidation Certificate'],
+          blex: ['Bordereau Officiel de Change FX & Attestation KYC COBAC', 'Official FX Deal Slip & COBAC AML Certificate'],
+          construction: ['Décompte Provisoire de Travaux BTP & Attachement', 'BTP Progress Billing Certificate & BOQ Statement'],
+          sugar: ['Ordre de Fabrication MRP & Certificat Labo ICUMSA 45', 'MRP Manufacturing Order & ICUMSA 45 Lab Certificate'],
+          trade: ['Fiche de Liquidation Douane GUCE & Coût de Revient (CAF)', 'GUCE Customs Liquidation & Landed Cost Sheet'],
+          finance: ['Pièce d’Imputation Comptable SYSCOHADA (Débit = Crédit)', 'SYSCOHADA Double-Entry Journal Voucher'],
+          hr: ['Bulletin de Paie Réglementaire Cameroun (CNPS / DIPE)', 'Cameroon Statutory Payslip & CNPS Statement'],
+          digital: ['Rapport d’Audit Cyber-Gouvernance & Conformité IA', 'AI Anomaly Audit & RBAC Compliance Certificate']
+        }[p.id] || ['Pièce Officielle ERP', 'Official ERP Document'];
+
+        const taxRate = p.id === 'hr' ? 0.042 : p.id === 'blex' ? 0.015 : 0.1925;
+        const taxAmt = Math.round(rec.amount * taxRate);
+        const netAmt = p.id === 'hr' ? (rec.amount - taxAmt) : (rec.amount + taxAmt);
+        const taxLabel = p.id === 'hr' ? 'Retenue Salariale CNPS PVID (4,2%)' : p.id === 'blex' ? 'Commission & Taxe Change (1,5%) · Seuil COBAC Vérifié' : p.id === 'construction' ? 'TVA Cameroun 19,25% (Retenue Garantie 10% suivie)' : 'TVA / Droits Réglementaires (19,25%)';
+
+        const docHtml = `
+          <div class="print-paper">
+            <header>
+              <div>
+                <span class="overline">${esc(p.num)} · ${esc(tr(p.nameFr, p.nameEn).toUpperCase())}</span>
+                <h2>${esc(tr(docTitles[0], docTitles[1]))}</h2>
+                <small>Réf : ${esc(rec.id)} · Date : ${esc(rec.date)} · Modèle : ${esc(p.odooModel)}</small>
+              </div>
+              <div class="align-right">
+                <strong>BLUE LINE CAPITAL GROUP</strong>
+                <div class="watermark">ÉTAPE ${rec.step}/4 · CERTIFIÉ</div>
+              </div>
+            </header>
+            <div class="permission-grid" style="margin:18px 0">
+              <div><small>${tr('Tiers / Contrepartie / Lot','Counterparty / Batch')}</small><p><strong>${esc(rec.client)}</strong></p><small>Mode : ${esc(rec.paymentMethod)}</small></div>
+              <div><small>${tr('Opérateur & Traçabilité Flowchart','Operator & Flowchart Trace')}</small><p><strong>${esc(rec.operator)}</strong></p><small>Statut : Étape ${rec.step}/4 ${rec.approvedByBoss ? '· Signé PDG [END]' : ''}</small></div>
+            </div>
+            <table>
+              <thead><tr><th>Réf</th><th>Catégorie Métier</th><th>Désignation Officielle</th><th>Qté</th><th>Montant Unitaire</th><th>Montant H.T. / Brut</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="mono">${esc(rec.id)}</td>
+                  <td>${esc(rec.category)}</td>
+                  <td><strong>${esc(tr(rec.itemFr, rec.itemEn))}</strong><br/><small>${esc(tr(rec.notesFr || '', rec.notesEn || ''))}</small></td>
+                  <td>${rec.qty}</td>
+                  <td class="mono">${money(rec.unitPrice)}</td>
+                  <td class="mono"><strong>${money(rec.amount)}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="align-right">
+              <p>Base H.T. / Brut : <b class="mono">${money(rec.amount)}</b></p>
+              <p>${esc(taxLabel)} : <b class="mono">${money(taxAmt)}</b></p>
+              <p class="total">Net Liquidé / TTC : ${money(netAmt)}</p>
+            </div>
+          </div>
+        `;
+        $('#printRoot').innerHTML = docHtml;
+        modal(`${esc(tr(docTitles[0], docTitles[1]))} — ${esc(rec.id)}`, `
+          ${docHtml}
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" data-action="close-modal">${tr('Fermer','Close')}</button>
+            <button type="button" class="btn btn-primary" onclick="window.print()">🖨 ${tr('Imprimer / Exporter PDF','Print / Save PDF')}</button>
+          </div>
+        `);
+        break;
+      }
       case 'close-modal': closeModal(); break;
       case 'new-booking': newBookingModal(); break;
       case 'new-guest': {
@@ -2794,6 +3383,118 @@
       save('new-division-record', `${p.id}:${newRec.id}`);
       render();
       notify(tr(`Dossier ${newRec.id} (${money(newRec.amount)}) validé à l’Étape 1 et envoyé au Kanban Opérations (Étape 2) !`, `Record ${newRec.id} created at Step 1 and sent to Step 2 Operations!`));
+      return;
+    }
+
+    if (kind === 'div-simulator') {
+      const p = currentProduct();
+      const a = Number(f.get('simA') || 0);
+      const b = Number(f.get('simB') || 0);
+      const c = Number(f.get('simC') || 0);
+      const client = String(f.get('simClient') || 'Dossier Calculé').trim();
+
+      let amount = 0, itemFr = '', itemEn = '', cat = 'Calcul Métier', notesFr = '', notesEn = '';
+      if (p.id === 'blex') {
+        const baseXaf = Math.round(a * b);
+        const spreadFee = Math.round(baseXaf * (c / 100));
+        amount = baseXaf + spreadFee;
+        const amlFlag = amount >= 5000000 ? 'Déclaration ANIF/COBAC Obligatoire (≥ 5M FCFA)' : 'Sous seuil LBC/FT (< 5M FCFA)';
+        cat = 'Change FX & COBAC';
+        itemFr = `Opération Change ${a.toLocaleString('fr-FR')} Devise @ ${b} XAF (+${c}% Spread)`;
+        itemEn = `FX Deal ${a.toLocaleString('en-GB')} Currency @ ${b} XAF (+${c}% Spread)`;
+        notesFr = `Contre-valeur : ${money(baseXaf)} · Marge FX : ${money(spreadFee)} · Statut AML : ${amlFlag}`;
+        notesEn = `Base XAF: ${money(baseXaf)} · Spread: ${money(spreadFee)} · AML Status: ${amlFlag}`;
+      } else if (p.id === 'sugar') {
+        const sugarTonnes = +(a * (b / 100)).toFixed(2);
+        const bags50kg = Math.round((sugarTonnes * 1000) / 50);
+        amount = bags50kg * c;
+        cat = 'Production MRP ICUMSA 45';
+        itemFr = `Broyage ${a}T Canne → ${sugarTonnes}T Sucre Blanc (${bags50kg} Sacs 50kg)`;
+        itemEn = `Milling ${a}T Cane → ${sugarTonnes}T Refined Sugar (${bags50kg} × 50kg Bags)`;
+        notesFr = `Rendement extraction : ${b}% · Sacs 50kg produits : ${bags50kg} · Polarimétrie 99,8°Z ICUMSA ≤ 45`;
+        notesEn = `Extraction yield: ${b}% · 50kg bags produced: ${bags50kg} · ICUMSA <= 45 certified`;
+      } else if (p.id === 'construction') {
+        const grossWorks = Math.round(a * (b / 100));
+        const retention = Math.round(grossWorks * (c / 100));
+        const tva = Math.round(grossWorks * 0.1925);
+        const air = Math.round(grossWorks * 0.022);
+        amount = grossWorks - retention + tva - air;
+        cat = 'Décompte BTP & BOQ';
+        itemFr = `Décompte Travaux (${b}% avancement) · Retenue Garantie ${c}%`;
+        itemEn = `Progress Billing (${b}% completion) · ${c}% Retention Guarantee`;
+        notesFr = `Brut HT: ${money(grossWorks)} · Retenue ${c}%: -${money(retention)} · TVA 19,25%: +${money(tva)} · AIR 2,2%: -${money(air)}`;
+        notesEn = `Gross HT: ${money(grossWorks)} · Retention: -${money(retention)} · VAT: +${money(tva)} · WHT: -${money(air)}`;
+      } else if (p.id === 'trade') {
+        const duty = Math.round(a * (b / 100));
+        const taxable = a + duty + c;
+        const tvaImport = Math.round(taxable * 0.1925);
+        amount = taxable + tvaImport;
+        cat = 'Liquidation GUCE & CAF';
+        itemFr = `Dédouanement Conteneur CAF ${money(a)} (TEC ${b}% + PAD)`;
+        itemEn = `Container Customs Clearance CIF ${money(a)} (TEC ${b}% + Port)`;
+        notesFr = `Droits Douane TEC (${b}%): ${money(duty)} · Acconage PAD: ${money(c)} · TVA Import 19,25%: ${money(tvaImport)}`;
+        notesEn = `Customs Duty (${b}%): ${money(duty)} · Port Fees: ${money(c)} · Import VAT 19.25%: ${money(tvaImport)}`;
+      } else if (p.id === 'finance') {
+        const tva = Math.round(a * (b / 100));
+        const air = Math.round(a * (c / 100));
+        amount = a + tva - air;
+        cat = 'Journal SYSCOHADA';
+        itemFr = `Écriture OHADA HT ${money(a)} (TVA ${b}% · AIR ${c}%)`;
+        itemEn = `SYSCOHADA Entry HT ${money(a)} (VAT ${b}% · WHT ${c}%)`;
+        notesFr = `Débit Cpte 601/241: ${money(a)} + Cpte 445 TVA: ${money(tva)} | Crédit Cpte 401 Net: ${money(amount)} + Cpte 447 AIR: ${money(air)}`;
+        notesEn = `Debit Acct 601: ${money(a)} + VAT 445: ${money(tva)} | Credit Acct 401 Net: ${money(amount)} + WHT 447: ${money(air)}`;
+      } else if (p.id === 'hr') {
+        const cnpsSal = Math.round(Math.min(a, 750000) * 0.042);
+        const irpp = Math.round(Math.max(0, a - cnpsSal - 41667) * 0.165);
+        const cfcRav = Math.round(a * 0.015);
+        const netUnit = Math.max(0, a - cnpsSal - irpp - cfcRav);
+        const cnpsPat = Math.round(a * (c / 100));
+        amount = netUnit * Math.max(1, b);
+        cat = 'Paie CNPS & DIPE';
+        itemFr = `Lot Paie ${b} Salarié(s) · Brut ${money(a)} → Net Unitaire ${money(netUnit)}`;
+        itemEn = `Payroll Batch ${b} Staff · Gross ${money(a)} → Net Unit ${money(netUnit)}`;
+        notesFr = `Par salarié : CNPS Salarié (4,2% plafonné): ${money(cnpsSal)} · IRPP+CAC: ${money(irpp)} · CFC+RAV: ${money(cfcRav)} · CNPS Patronale (${c}%): ${money(cnpsPat)}`;
+        notesEn = `Per employee: CNPS 4.2%: ${money(cnpsSal)} · IRPP+CAC: ${money(irpp)} · CFC+RAV: ${money(cfcRav)} · Employer CNPS (${c}%): ${money(cnpsPat)}`;
+      } else if (p.id === 'holding') {
+        const payback = b > 0 ? (a / b).toFixed(1) : '—';
+        const npv5y = Math.round((b * 3.99) - a);
+        amount = a;
+        cat = 'Comité CAPEX Groupe';
+        itemFr = `Allocation CAPEX ${money(a)} (Payback ${payback} ans · VAN 5 ans ${money(npv5y)})`;
+        itemEn = `CAPEX Allocation ${money(a)} (Payback ${payback} yrs · 5Y NPV ${money(npv5y)})`;
+        notesFr = `Cash-flow annuel: ${money(b)} · Détention Holding: ${c}% · VAN (NPV @ 8%): ${money(npv5y)}`;
+        notesEn = `Annual cashflow: ${money(b)} · Holding stake: ${c}% · 5Y NPV (@ 8%): ${money(npv5y)}`;
+      } else {
+        amount = a;
+        cat = 'Audit IA Copilot';
+        itemFr = `Scan Heuristique ${b} Filiales (Seuil ${money(a)} · Confiance ${c}%)`;
+        itemEn = `Heuristic Scan across ${b} Divisions (Threshold ${money(a)} · Confidence ${c}%)`;
+        notesFr = `0 brèche RBAC · Vérification croisée BLEX/SYSCOHADA/Folios terminée avec score ${c}%`;
+        notesEn = `0 RBAC breaches · Cross-division verification completed at ${c}% confidence`;
+      }
+
+      const newRec = {
+        id: `${p.id.toUpperCase().slice(0,3)}-${Math.floor(2610 + Math.random()*890)}`,
+        step: 3,
+        client,
+        itemFr,
+        itemEn,
+        category: cat,
+        qty: 1,
+        unitPrice: amount,
+        amount,
+        paymentMethod: 'Calcul Réglementaire Certifié',
+        operator: currentRoleMeta().staff,
+        notesFr,
+        notesEn,
+        date: todayISO()
+      };
+
+      db.divisionRecords[p.id] = db.divisionRecords[p.id] || [];
+      db.divisionRecords[p.id].unshift(newRec);
+      save('run-division-simulator', `${p.id}:${newRec.id}:${amount}`);
+      render();
+      notify(tr(`Simulation ${newRec.id} (${money(amount)}) enregistrée et envoyée à l’Audit (Étape 3) !`, `Simulation ${newRec.id} (${money(amount)}) saved to Step 3 Audit!`));
       return;
     }
 

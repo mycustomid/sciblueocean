@@ -86,10 +86,22 @@ def run():
         p.locator('form[data-form="div-new-record"] [name="client"]').fill('Societe Cacao Douala SA')
         p.locator('form[data-form="div-new-record"] button[type="submit"]').click()
         
-        # Advance in Step 2 Kanban
+        # Advance in Step 2 Kanban & verify domain-specific units (6 FX Vaults, NOT 24 Hotel Rooms!)
         p.locator('#roleSelect').select_option('housekeeping')
         assert p.locator('.kanban-3').count() == 1
         p.locator('[data-action="div-advance-step"]').first.click()
+        p.locator('[data-view="rooms"]').click()
+        assert p.locator('.room-card').count() == 6
+        assert 'COFFRE-EUR' in p.locator('#mainView').inner_text()
+
+        # Test Sugar Manufacturing (Product 05) Domain Simulator & Official Certificate Modal
+        p.locator('#productSelect').select_option('sugar')
+        p.locator('#roleSelect').select_option('direction')
+        assert p.locator('form[data-form="div-simulator"]').count() == 1
+        p.locator('form[data-form="div-simulator"] button[type="submit"]').click()
+        p.locator('[data-action="print-div-record"]').first.click()
+        assert 'ICUMSA 45' in p.locator('#modalRoot').inner_text()
+        p.locator('[data-action="close-modal"]').first.click()
         
         # Switch back to Property & test Housekeeping role
         p.locator('#productSelect').select_option('property')
