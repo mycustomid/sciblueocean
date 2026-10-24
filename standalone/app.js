@@ -849,7 +849,7 @@
   const matchedInitProd = PRODUCTS_9.find(p => p.id === initProdParam || p.slug === initProdParam);
 
   let productId = matchedInitProd ? matchedInitProd.id : 'property';
-  let role = params.get('role') || 'direction';
+  let role = roles[params.get('role')] ? params.get('role') : 'direction';
   let lang = params.get('lang') === 'en' ? 'en' : 'fr';
   let view = 'overview';
   // Open Login Gate by default on HTTP/HTTPS so user starts at the Start-to-End Flowchart & Role Portal
@@ -872,8 +872,8 @@
     const p = currentProduct();
     return p.roles[role] || p.roles.service || p.roles.direction;
   };
-  const can = perm => (roles[role]?.actions || roles.direction.actions).includes(perm);
-  const canView = id => (roles[role]?.views || roles.direction.views).includes(id);
+  const can = perm => Boolean(roles[role]?.actions.includes(perm));
+  const canView = id => Boolean(roles[role]?.views.includes(id));
 
   // Helpers
   const guestFor = id => db.guests.find(g => g.id === id) || { name: tr('Client inconnu','Unknown guest'), phone:'—', email:'' };
@@ -1029,7 +1029,7 @@
             <div class="login-brand-box"><img src="./brand/logo-main.png" alt="Blue Line Capital" onerror="this.src='/brand/logo-main.png'"/></div>
             <div>
               <h1>${tr('Blue Line Capital Group — Architecture ERP des 9 Produits','Blue Line Capital Group — 9-Product Enterprise ERP Suite')}</h1>
-              <p>${tr('Sélectionnez une Filiale (1 à 9), observez son Flowchart Start-to-End et ouvrez un Poste de Travail dédié (du Caissier jusqu’au Boss).','Select a Business Division (1 to 9), inspect its Start-to-End Flowchart, and log into a dedicated Role Terminal.')}</p>
+              <p>${tr('Explorez les workflows des filiales et ouvrez un terminal de démonstration (sans authentification serveur).','Explore division workflows and open a demo workstation (no server authentication).')}</p>
             </div>
           </div>
           <div class="toolbar-group">
@@ -1042,18 +1042,33 @@
           </div>
         </div>
 
+        <section class="portal-lede" aria-label="${tr('Aperçu du portail','Portal overview')}">
+          <div class="portal-lede-copy">
+            <span class="portal-kicker">BLUE LINE / OPERATIONS ATLAS / 2026</span>
+            <h2>${tr('Neuf métiers. Une même exigence de pilotage.','Nine disciplines. One operational perspective.')}</h2>
+            <p>${tr('Explorez les flux et ouvrez un poste de travail de démonstration. Les données restent dans votre navigateur : ceci ne constitue pas une connexion sécurisée.','Explore the workflows and open a demo workstation. Data is held in your browser; this is not a secure sign-in.')}</p>
+          </div>
+          <div class="portal-lede-metric" aria-hidden="true"><strong>09</strong><span>${tr('domaines / activité','operating / divisions')}</span></div>
+        </section>
+        <div class="portal-search-row">
+          <label for="portalProductSearch" class="portal-search-label">${tr('Rechercher une activité','Find a business division')}</label>
+          <div class="portal-search-input-wrap"><span aria-hidden="true">⌕</span><input id="portalProductSearch" type="search" autocomplete="off" placeholder="${tr('Nom, métier ou fonction…','Name, sector or function…')}" aria-controls="portalProductGrid" aria-describedby="portalResults"/></div>
+          <span id="portalResults" class="portal-results" role="status" aria-live="polite">9 / 9</span>
+          <kbd class="portal-shortcut">Ctrl / ⌘ + K</kbd>
+        </div>
+
         <!-- STEP A: THE 9 PRODUCTS OF BLUE LINE CAPITAL GROUP -->
         <div class="products-9-section">
           <div class="products-9-head">
             <strong>1. ${tr('CHOISIR L’UN DES 9 PRODUITS / FILIALES DU GROUPE (BLUE LINE CAPITAL)','SELECT ONE OF THE 9 GROUP PRODUCTS / DIVISIONS')}</strong>
             <span>${tr('Architectures Open-Source rétro-ingéniées depuis GitHub (Odoo OCA & Frappe ERPNext)','Open-source architectures reverse-engineered from GitHub (Odoo OCA & Frappe ERPNext)')}</span>
           </div>
-          <div class="products-9-grid">
+          <div class="products-9-grid" id="portalProductGrid">
             ${PRODUCTS_9.map(prod => {
               const c = stepCountsFor(prod.id);
               const totalActive = c[1] + c[2] + c[3] + c[4];
               return `
-                <button type="button" class="product-9-card ${prod.id === p.id ? 'active' : ''}" data-action="select-product" data-product="${esc(prod.id)}">
+                <button type="button" class="product-9-card ${prod.id === p.id ? 'active' : ''}" data-action="select-product" data-product="${esc(prod.id)}" aria-pressed="${prod.id === p.id}">
                   <div class="product-9-top">
                     <span class="product-9-num">${esc(prod.num)}</span>
                     <span class="product-9-repo">${esc(prod.repo)}</span>
@@ -1098,7 +1113,7 @@
 
         <!-- STEP C: SELECT SPECIFIC ROLE TERMINAL TO LOG IN -->
         <div class="products-9-head" style="margin-bottom:12px">
-          <strong>3. ${tr('CONNECTER UN POSTE DE TRAVAIL (CHAQUE RÔLE A SON PROPRE ÉCRAN DÉDIÉ)','LOG INTO A WORKSTATION TERMINAL (EACH ROLE HAS ITS OWN DEDICATED UI)')}</strong>
+          <strong>3. ${tr('OUVRIR UN POSTE DE DÉMONSTRATION','OPEN A DEMO WORKSTATION')}</strong>
           <span>${tr('Le Caissier, l’Opérateur Terrain, le Comptable et le Boss ont chacun leur propre interface !','Cashiers, Field Operators, Accountants and the Boss each get their own specialized workspace!')}</span>
         </div>
         <div class="terminals-grid">
@@ -2005,7 +2020,7 @@
   // ============================================================================
   function renderNav() {
     const p = currentProduct();
-    const allowedViews = roles[role]?.views || roles.direction.views;
+    const allowedViews = roles[role]?.views || roles.service.views;
     let prev = -1;
     $('#mainNav').innerHTML = allowedViews.map(id => {
       const x = navItemMeta(id, p.id);
@@ -2046,6 +2061,8 @@
     const rMeta = currentRoleMeta();
     const item = navItemMeta(view, p.id);
     document.documentElement.lang = lang;
+    document.documentElement.dataset.erpProduct = p.id;
+    document.documentElement.dataset.erpRole = role;
     document.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
 
     if ($('#productBreadcrumb')) $('#productBreadcrumb').textContent = `${p.num} · ${tr(p.nameFr, p.nameEn)}`;
@@ -2062,6 +2079,8 @@
     $('#pageDescription').textContent = descText;
     $('#pageEyebrow').textContent = `${p.num} · ${p.repo.toUpperCase()} · ${rMeta.badge}`;
     $('#todayPill').textContent = dateLabel(todayISO(), lang, true);
+    const demoPill = $('#shiftStatusPill');
+    if (demoPill) { demoPill.textContent = tr('●  MODE DÉMONSTRATION — DONNÉES LOCALES','●  DEMO MODE — LOCAL DATA'); demoPill.title = tr('Sans authentification ni synchronisation serveur','No authenticated session or server synchronization'); }
 
     renderLoginGate();
     renderFlowchartBar();
@@ -2932,13 +2951,15 @@
   }
 
   // Modals
+  let modalPreviousFocus = null;
   function modal(title, body) {
+    if ($('#modalRoot').hidden) modalPreviousFocus = document.activeElement;
     const root = $('#modalRoot');
     root.hidden = false;
     root.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-header"><h2 id="modalTitle">${title}</h2><button class="modal-close" type="button" data-action="close-modal" aria-label="Close">×</button></div>${body}</div>`;
     root.querySelector('.modal-close')?.focus();
   }
-  function closeModal() { $('#modalRoot').hidden = true; $('#modalRoot').innerHTML = ''; }
+  function closeModal() { const root = $('#modalRoot'); if (root.hidden) return; root.hidden = true; root.innerHTML = ''; if (modalPreviousFocus?.isConnected) modalPreviousFocus.focus({preventScroll:true}); modalPreviousFocus = null; }
   function field(name, label, type='text', value='', extra='') {
     return `<div class="form-field"><label for="field-${esc(name)}">${label}</label><input id="field-${esc(name)}" name="${esc(name)}" type="${esc(type)}" value="${esc(value)}" ${extra}/></div>`;
   }
@@ -2958,6 +2979,7 @@
             <select id="booking-room" name="roomId" required>
               ${db.rooms.filter(r => r.status !== 'maintenance').map(r => `<option value="${esc(r.id)}">${esc(r.id)} — ${esc(r.type)} (${esc(r.floor)}) · ${money(r.rate)}</option>`).join('')}
             </select>
+            <p class="form-note">${tr('Le système vérifiera les conflits de dates lors de l’enregistrement.','Date conflicts are checked before saving the reservation.')}</p>
           </div>
           <div class="form-field">
             <label for="booking-channel">${tr('Canal de provenance','Source Channel')}</label>
@@ -3185,6 +3207,10 @@
       case 'enter-terminal': {
         const nextProd = button.dataset.product || productId;
         const nextRole = button.dataset.role || 'direction';
+        if (!PRODUCTS_9.some(p => p.id === nextProd) || !currentProduct().roles[nextRole] && !PRODUCTS_9.find(p => p.id === nextProd)?.roles[nextRole]) {
+          notify(tr('Choix de terminal invalide','Invalid demo terminal selection'), true);
+          break;
+        }
         productId = nextProd;
         role = nextRole;
         view = 'overview';
@@ -3594,6 +3620,7 @@
       case 'export-json': { download(JSON.stringify(db, null, 2), 'blue-line-9-products-erp.json', 'application/json'); notify(tr('Base exportée (JSON)','JSON exported')); break; }
       case 'export-csv': { exportFoliosCSV(); break; }
       case 'reset-data': {
+        if (!window.confirm(tr('Effacer toutes les modifications locales de la démonstration et restaurer les données exemple ? Cette action ne peut pas être annulée.', 'Erase all local demo changes and restore the sample dataset? This cannot be undone.'))) break;
         db = demoSeed(); save('factory-reset'); render();
         notify(tr('Base des 9 produits réinitialisée !','All 9 products reset!'));
         break;
@@ -3819,8 +3846,21 @@
       const deposit = Number(f.get('paid') || 0);
       const payMethod = String(f.get('payMethod') || 'Espèces');
 
-      if (!guestName || !arrival || !departure || arrival >= departure) {
+      if (!guestName || !arrival || !departure || arrival >= departure || !/^\d{4}-\d{2}-\d{2}$/.test(arrival) || !/^\d{4}-\d{2}-\d{2}$/.test(departure)) {
         return notify(tr('Dates de réservation invalides','Invalid stay dates'), true);
+      }
+      const requestedRoom = roomFor(roomId);
+      if (!requestedRoom || requestedRoom.status === 'maintenance') {
+        return notify(tr('Veuillez sélectionner une unité disponible et valide.','Select a valid unit that is not out of service.'), true);
+      }
+      const overlap = db.bookings.some(b => b.roomId === roomId && b.status !== 'cancelled' && b.status !== 'checked-out' && arrival < b.departure && departure > b.arrival);
+      if (overlap) {
+        return notify(tr('Cette unité est déjà réservée sur les dates sélectionnées.','This room already has a reservation overlapping those dates.'), true);
+      }
+      const requestedNights = dateDiff(arrival, departure);
+      const maximumDeposit = requestedRoom.rate * requestedNights;
+      if (!Number.isFinite(deposit) || deposit < 0 || deposit > maximumDeposit) {
+        return notify(tr('Acompte invalide ou supérieur au montant du séjour.','Invalid deposit or greater than the stay total.'), true);
       }
 
       let guest = db.guests.find(g => g.name.toLowerCase() === guestName.toLowerCase());
@@ -3859,6 +3899,9 @@
       const srv = db.services.find(s => s.id === String(f.get('serviceId') || ''));
       const qty = Number(f.get('qty') || 1);
       const price = Number(f.get('price') || (srv?.price || 0));
+      if (folio.status !== 'open' || !srv || !Number.isInteger(qty) || qty < 1 || qty > 10000 || !Number.isFinite(price) || price < 0) {
+        return notify(tr('Prestation, quantité, prix ou folio invalide.','Invalid service, quantity, price, or closed folio.'), true);
+      }
       const desc = srv ? (lang === 'fr' ? srv.nameFr : srv.nameEn) : 'Prestation';
       folio.lines.push({ id: `LN-${Date.now().toString(36)}`, date: todayISO(), category: srv ? srv.cat : 'service', desc, qty, unitPrice: price, total: qty * price });
       save('add-folio-charge', `${folio.id}:${desc}`);
@@ -3871,7 +3914,10 @@
       const folio = folioFor(form.dataset.folio);
       if (!folio) return;
       const amount = Number(f.get('amount') || 0);
-      if (amount <= 0) return;
+      const remaining = folioMetrics(folio).balance;
+      if (!Number.isFinite(amount) || amount <= 0 || amount > remaining || folio.status === 'closed') {
+        return notify(tr('Montant invalide, solde dépassé ou folio déjà clôturé.','Invalid amount, payment exceeds balance, or folio is closed.'), true);
+      }
       folio.payments.push({ id: `PAY-${Date.now().toString(36)}`, date: todayISO(), amount, method: String(f.get('method') || 'Espèces'), ref: `ENC-${Date.now().toString().slice(-6)}` });
       save('record-folio-payment', `${folio.id}:${amount}`);
       closeModal(); openFolioModal(folio.id); render();
@@ -3903,6 +3949,42 @@
       const r = roomFor(form.dataset.id);
       const status = String(f.get('status') || '');
       if (r) { r.status = status; save('update-room-status', `${r.id}:${status}`); closeModal(); render(); }
+    }
+  });
+
+  // Progressive UX enhancement: filter nine products without resetting the application view.
+  document.addEventListener('input', event => {
+    if (event.target?.id !== 'portalProductSearch') return;
+    const q = event.target.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
+    const cards = [...document.querySelectorAll('#portalProductGrid .product-9-card')];
+    let visible = 0;
+    for (const card of cards) {
+      const haystack = card.textContent.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+      const match = !q || haystack.includes(q);
+      card.hidden = !match;
+      if (match) visible++;
+    }
+    const status = $('#portalResults');
+    if (status) status.textContent = `${visible} / ${cards.length}`;
+  });
+  document.addEventListener('keydown', event => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      if (!gateOpen) { gateOpen = true; render(); }
+      $('#portalProductSearch')?.focus();
+    }
+    if (event.target?.id === 'portalProductSearch' && event.key === 'Enter') {
+      const first = [...document.querySelectorAll('#portalProductGrid .product-9-card')].find(el => !el.hidden);
+      if (first) { event.preventDefault(); first.click(); $('#portalProductSearch')?.focus(); }
+    }
+    if (event.key === 'Tab' && !$('#modalRoot')?.hidden) {
+      const modalEl = $('#modalRoot .modal');
+      if (!modalEl) return;
+      const candidates = [...modalEl.querySelectorAll('button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el => el.getClientRects().length);
+      if (!candidates.length) return;
+      const first = candidates[0], last = candidates[candidates.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !modalEl.contains(document.activeElement))) {event.preventDefault();last.focus();}
+      else if (!event.shiftKey && (document.activeElement === last || !modalEl.contains(document.activeElement))) {event.preventDefault();first.focus();}
     }
   });
 
