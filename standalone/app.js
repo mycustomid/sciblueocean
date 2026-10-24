@@ -356,7 +356,7 @@
       odooId: 'group_executive_manager',
       fr: 'Direction Générale (Boss)',
       en: 'General Manager (Boss)',
-      views: ['overview','rooms','bookings','folios','services','calendar','guests','housekeeping','maintenance','operations','audit','reports','settings'],
+      views: ['overview','modulesReview','rooms','bookings','folios','services','calendar','guests','housekeeping','maintenance','operations','audit','reports','settings'],
       actions: ['booking','checkin','room','guest','payment','folio_charge','folio_close','task','maintenance','audit_run','ops','export','reset']
     },
     reception: {
@@ -384,13 +384,14 @@
       odooId: 'group_accountant_auditor',
       fr: 'Poste Comptabilité, Contrôle & Audit (Étape 3)',
       en: 'Accounting, Compliance & Audit (Step 3)',
-      views: ['overview','folios','audit','reports','bookings'],
+      views: ['overview','modulesReview','folios','audit','reports','bookings'],
       actions: ['payment','folio_close','audit_run','export']
     }
   };
 
   const navigation = [
     { id:'overview', icon:'dashboard', group:0, fr:"Terminal du Poste Actif", en:'Active Role Terminal', descFr:'Espace opérationnel dédié à votre poste dans le Flowchart Start-to-End.', descEn:'Dedicated operational workspace for your role in the Start-to-End Flowchart.' },
+    { id:'modulesReview', icon:'chart', group:0, fr:'Revue & Audit des 9 Modules ERP', en:'9-Module ERP Executive Audit', descFr:'Console centrale d’inspection, banc d’essai et connexion backend des 9 filiales.', descEn:'Central inspection console, test bench and live backend API sync for all 9 modules.' },
     { id:'rooms', icon:'bed', group:0, fr:'Chambres & Parc Immobilier', en:'Rooms & Property Rack', descFr:'Plan de chambre par étage, commodités et statut en direct.', descEn:'Floor rack matrix, room amenities and live statuses.' },
     { id:'bookings', icon:'book', group:0, fr:'Réservations & Baux', en:'Reservations & Leases', descFr:'Gestion des séjours et pipeline de validation Odoo.', descEn:'Stay management and Odoo workflow pipeline.' },
     { id:'folios', icon:'fileText', group:0, fr:'Folios & Grand Livre', en:'Folios & Ledger', descFr:'Ledger financier centralisé (chambre, restauration, blanchisserie).', descEn:'Centralized guest billing folio (room, F&B, laundry).' },
@@ -2089,6 +2090,7 @@
 
     const viewMap = {
       overview: renderOverview,
+      modulesReview: () => (window.renderModulesReviewView ? window.renderModulesReviewView() : renderOverview()),
       rooms: renderRooms,
       bookings: renderBookings,
       folios: renderFolios,
@@ -2108,9 +2110,16 @@
 
   function headingActions() {
     const p = currentProduct();
+    if (view === 'modulesReview') {
+      return `
+        ${btn('open-login-gate', `⊞ ${tr('Portail 9 Produits','9-Product Portal')}`, 'outline')}
+        ${btn('switch-view-overview', `⇦ ${tr('Retour au Terminal','Back to Terminal')}`, 'primary')}
+      `;
+    }
     if (view === 'overview') {
       return `
         ${btn('open-login-gate', `⊞ ${tr('Changer Produit / Poste (9 ERP)','Switch Product / Role (9 ERP)')}`, 'outline')}
+        ${btn('goto-modules-review', `📊 ${tr('Revue 9 Modules ERP','9-Module ERP Review')}`, 'dark')}
         ${p.id === 'property' && can('booking') ? btn('new-booking', `${icon('plus')}${tr('Nouvelle Réservation','New Booking')}`, 'primary') : btn('switch-role-step', `${icon('plus')}${tr('Saisie Guichet (Étape 1)','New Step 1 Entry')}`, 'primary', 'data-role="service"')}
       `;
     }
@@ -3188,6 +3197,20 @@
         }
         break;
       }
+      case 'goto-modules-review': {
+        view = 'modulesReview';
+        gateOpen = false;
+        render();
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        notify(tr('Console de Revue des 9 Modules ERP ouverte !', '9-Module ERP Executive Review Console opened!'));
+        break;
+      }
+      case 'switch-view-overview': {
+        view = 'overview';
+        render();
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        break;
+      }
       case 'select-product-direct': {
         const nextProd = button.dataset.product;
         if (PRODUCTS_9.some(p => p.id === nextProd)) {
@@ -4010,6 +4033,16 @@
       $('#menuToggle').setAttribute('aria-expanded', 'false');
     }
   });
+
+  // Expose global runtime context for Executive 9-Module Review Hub & External Workspaces
+  window.PRODUCTS_9 = PRODUCTS_9;
+  window.db = db;
+  window.save = save;
+  window.notify = notify;
+  window.modal = modal;
+  window.closeModal = closeModal;
+  window.render = render;
+  window.currentProduct = currentProduct;
 
   render();
 })();

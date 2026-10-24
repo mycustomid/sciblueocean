@@ -1,0 +1,480 @@
+{
+  "version": "3.0.0",
+  "lastUpdated": "2026-10-24T09:33:58.863Z",
+  "totalRecords": 10,
+  "records": [
+    {
+      "id": "HLD-2601",
+      "moduleId": "holding",
+      "date": "2026-10-24",
+      "party": "Blue Line Sugar Manufacturing SA",
+      "desc": "Extension Ligne de Broyage & Raffinage 1500T (CAPEX Q4)",
+      "category": "CAPEX Filiale",
+      "amount": 145000000,
+      "currency": "FCFA",
+      "step": 4,
+      "status": "approved",
+      "metadata": {
+        "subsidiary": "Sugar Manufacturing",
+        "roiEstimated": "22.4%",
+        "paybackMonths": 18,
+        "syscohadaAccount": "2151"
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Marc-Antoine Ndongo",
+          "at": "2026-10-21 08:30",
+          "note": "Dossier CAPEX soumis avec plan de trésorerie."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "Ing. Paul Essomba",
+          "at": "2026-10-22 14:15",
+          "note": "Audit technique validé. Élimination intragroupe conforme."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "Auditrice Danielle Meka",
+          "at": "2026-10-23 11:00",
+          "note": "Certification SYSCOHADA OK. Compte 2151 imputé."
+        },
+        {
+          "step": 4,
+          "role": "direction",
+          "by": "Dr. Fadjar Aryo Seto (PDG)",
+          "at": "2026-10-24 10:45",
+          "note": "Décaissement autorisé en 2 tranches."
+        }
+      ]
+    },
+    {
+      "id": "HLD-2602",
+      "moduleId": "holding",
+      "date": "2026-10-24",
+      "party": "Blue Line Exchange SAS",
+      "desc": "Augmentation Réserve Devises CEMAC (Fonds de Roulement BLEX)",
+      "category": "Trésorerie Groupe",
+      "amount": 75000000,
+      "currency": "FCFA",
+      "step": 3,
+      "status": "audited",
+      "metadata": {
+        "subsidiary": "Blue Line Exchange",
+        "regulatoryBody": "COBAC / BEAC",
+        "targetReserve": "USD / EUR"
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Marc-Antoine Ndongo",
+          "at": "2026-10-23 09:00",
+          "note": "Demande de refinancement guichets Yaoundé."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "Contrôleur Luc Noah",
+          "at": "2026-10-23 16:30",
+          "note": "Revue ratios liquidité CEMAC positive."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "Auditrice Danielle Meka",
+          "at": "2026-10-24 08:15",
+          "note": "Visa de conformité monétaire accordé."
+        }
+      ]
+    },
+    {
+      "id": "BLX-2601",
+      "moduleId": "blex",
+      "date": "2026-10-24",
+      "party": "Société Camerounaise de Négoce (SCAN)",
+      "desc": "Vente Devises Import: 250 000 USD @ 608 XAF (L/C Import)",
+      "category": "Change Spot USD",
+      "amount": 152000000,
+      "currency": "FCFA",
+      "step": 4,
+      "status": "approved",
+      "metadata": {
+        "currencyPair": "USD/XAF",
+        "volumeDevise": 250000,
+        "spotRate": 608,
+        "beacDeclarationId": "DEC-BEAC-2026-8891"
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Aissatou Bello",
+          "at": "2026-10-24 09:10",
+          "note": "KYC client et facture proforma import validés."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "Serge Manga",
+          "at": "2026-10-24 10:00",
+          "note": "Disponibilité billets coffre principal confirmée."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "Alain Mbarga",
+          "at": "2026-10-24 10:45",
+          "note": "Contrôle AML négatif (aucun signalement). Dossier visé."
+        },
+        {
+          "step": 4,
+          "role": "direction",
+          "by": "Direction BLEX",
+          "at": "2026-10-24 11:20",
+          "note": "Validation taux dérogatoire et ordre de remise."
+        }
+      ]
+    },
+    {
+      "id": "SBO-2601",
+      "moduleId": "property",
+      "date": "2026-10-24",
+      "party": "TotalEnergies EP Cameroun",
+      "desc": "Contrat Bail Commercial & Suites Cadres Q4 (Immeuble Le Phare)",
+      "category": "Bail & Résidence Hôtelière",
+      "amount": 48000000,
+      "currency": "FCFA",
+      "step": 4,
+      "status": "approved",
+      "metadata": {
+        "units": "Suites 401-408 + Bureau Étage 2",
+        "nights": 90,
+        "contractType": "Corporate Lease"
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Nadine Fotso",
+          "at": "2026-10-20 10:00",
+          "note": "Signature du bail cadre corporate."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "Gouvernante Henriette",
+          "at": "2026-10-21 15:00",
+          "note": "État des lieux d’entrée et aménagement VIP achevés."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "Comptable Samuel Ekotto",
+          "at": "2026-10-22 09:30",
+          "note": "Dépôt de garantie et premier terme encaissés."
+        },
+        {
+          "step": 4,
+          "role": "direction",
+          "by": "Gérance SCI Blue Ocean",
+          "at": "2026-10-23 17:00",
+          "note": "Clés remises et quittance officielle émise."
+        }
+      ]
+    },
+    {
+      "id": "CST-2601",
+      "moduleId": "construction",
+      "date": "2026-10-24",
+      "party": "Port Autonome de Kribi (PAK)",
+      "desc": "Phase 2: Plateforme Logistique 12 000 m² & Voie Lourde",
+      "category": "Génie Civil EPC",
+      "amount": 320000000,
+      "currency": "FCFA",
+      "step": 4,
+      "status": "approved",
+      "metadata": {
+        "site": "Zone Industrielle Kribi",
+        "milestone": "Attachement 04/08",
+        "progressPct": 65,
+        "safetyIncidents": 0
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Bureau d’Études BTP",
+          "at": "2026-10-18 10:00",
+          "note": "Émission attachement contradictoire n°4."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "Chef Chantier Jean-Pierre",
+          "at": "2026-10-20 14:00",
+          "note": "Essais de portance béton C25/30 concluants."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "Contrôleur de Gestion BTP",
+          "at": "2026-10-22 11:30",
+          "note": "Décompte général provisoire certifié par la mission de contrôle."
+        },
+        {
+          "step": 4,
+          "role": "direction",
+          "by": "Directeur Général BLC Construction",
+          "at": "2026-10-24 09:00",
+          "note": "Validation pour mise en recouvrement client."
+        }
+      ]
+    },
+    {
+      "id": "SUG-2601",
+      "moduleId": "sugar",
+      "date": "2026-10-24",
+      "party": "Coopérative Planteurs du Nkam & Haute-Sanaga",
+      "desc": "Campagne Sucrière Lot #88: Broyage 1 200 T Canne & Raffinage 135 T Sucre Blanc",
+      "category": "Raffinage & Broyage",
+      "amount": 118500000,
+      "currency": "FCFA",
+      "step": 4,
+      "status": "approved",
+      "metadata": {
+        "batchNumber": "LOT-SUG-2026-88",
+        "canneTonnage": 1200,
+        "yieldPct": 11.25,
+        "sugarBags50kg": 2700,
+        "brixLevel": 19.4
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Pesage Usine",
+          "at": "2026-10-21 06:00",
+          "note": "Pesée pont-bascule 48 camions canne terminée."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "Ingénieur d’Usine Bakary",
+          "at": "2026-10-22 18:00",
+          "note": "Cycle de chauffe et cristallisation conforme. Pureté 99.8%."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "Labo Qualité & Contrôle Coûts",
+          "at": "2026-10-23 16:30",
+          "note": "Certificat sanitaire délivré. Ensacage 50kg tracé."
+        },
+        {
+          "step": 4,
+          "role": "direction",
+          "by": "Directeur Usine Sucrière",
+          "at": "2026-10-24 11:00",
+          "note": "Feu vert délivré pour distribution grossistes Yaoundé."
+        }
+      ]
+    },
+    {
+      "id": "TRD-2601",
+      "moduleId": "trade",
+      "date": "2026-10-24",
+      "party": "Guangzhou Heavy Machinery Corp & Maersk Line",
+      "desc": "Dédouanement 6 Conteneurs 40ft: Pièces Détachées & Modules CKD",
+      "category": "Fret Maritime & Douane",
+      "amount": 88400000,
+      "currency": "FCFA",
+      "step": 4,
+      "status": "approved",
+      "metadata": {
+        "blNumber": "MSK-DLA-2026-4401",
+        "declarationSydonia": "DLA-SYD-99120",
+        "port": "Port de Douala (PAD)",
+        "containers": 6
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Déclarant en Douane",
+          "at": "2026-10-20 08:00",
+          "note": "Enregistrement déclaration Sydonia World."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "Opérations Portuaires",
+          "at": "2026-10-21 15:30",
+          "note": "Visite physique douane effectuée sans contentieux."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "Comptable Négoce",
+          "at": "2026-10-22 14:00",
+          "note": "Paiement quittance Trésor Public et frais de manutention DIT."
+        },
+        {
+          "step": 4,
+          "role": "direction",
+          "by": "Directeur Logistique Trade",
+          "at": "2026-10-24 08:30",
+          "note": "Bon à enlever (BAE) obtenu et transfert entrepôt validé."
+        }
+      ]
+    },
+    {
+      "id": "FIN-2601",
+      "moduleId": "finance",
+      "date": "2026-10-24",
+      "party": "Direction Générale des Impôts (DGI Centre 1)",
+      "desc": "Clôture TVA, Acomptes IS & Déclarations Fiscales Mensuelles Groupe",
+      "category": "Déclaration Fiscale SYSCOHADA",
+      "amount": 34500000,
+      "currency": "FCFA",
+      "step": 4,
+      "status": "approved",
+      "metadata": {
+        "period": "Septembre 2026",
+        "tvaCollectee": 28400000,
+        "acompteIS": 6100000,
+        "teledeclarationId": "DGI-CMR-2026-89912"
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Aide-Comptable Fiscaliste",
+          "at": "2026-10-22 11:00",
+          "note": "Centralisation des journaux de ventes et achats des 9 filiales."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "Chef Comptable Groupe",
+          "at": "2026-10-23 10:30",
+          "note": "Rapprochement des crédits de TVA et précomptes sur achats."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "Contrôleur Fiscal Interne",
+          "at": "2026-10-23 16:45",
+          "note": "Liasse fiscale validée conforme aux directives OHADA."
+        },
+        {
+          "step": 4,
+          "role": "direction",
+          "by": "Directeur Administratif & Financier (DAF)",
+          "at": "2026-10-24 10:00",
+          "note": "Ordre de virement bancaire Trésor Public signé."
+        }
+      ]
+    },
+    {
+      "id": "HR-2601",
+      "moduleId": "hr",
+      "date": "2026-10-24",
+      "party": "Caisse Nationale de Prévoyance Sociale (CNPS Cameroun)",
+      "desc": "Masse Salariale Consolidée & Cotisations Sociales CNPS (184 Collaborateurs)",
+      "category": "Paie & Déclarations Sociales",
+      "amount": 54800000,
+      "currency": "FCFA",
+      "step": 4,
+      "status": "approved",
+      "metadata": {
+        "headcount": 184,
+        "netPay": 41200000,
+        "cnpsDeduction": 8400000,
+        "irppTax": 5200000,
+        "month": "Octobre 2026"
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Gestionnaire RH",
+          "at": "2026-10-22 09:00",
+          "note": "Clôture des pointages biométriques et heures supplémentaires."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "Superviseur Paie",
+          "at": "2026-10-23 14:00",
+          "note": "Calcul des 184 fiches de paie et retenues CNPS / IRPP."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "Auditeur Social",
+          "at": "2026-10-24 09:30",
+          "note": "Vérification barèmes légaux Code du Travail camerounais."
+        },
+        {
+          "step": 4,
+          "role": "direction",
+          "by": "Directrice des Ressources Humaines",
+          "at": "2026-10-24 11:15",
+          "note": "Ordre de virement bancaire global transmis à la banque."
+        }
+      ]
+    },
+    {
+      "id": "DGT-2601",
+      "moduleId": "digital",
+      "date": "2026-10-24",
+      "party": "Infrastructure Cloud & Cluster IA Multi-Tenant",
+      "desc": "Déploiement Nœud Inférence IA Copilot & Surveillance SLA 99.98%",
+      "category": "Infrastructure & AI Cloud",
+      "amount": 18500000,
+      "currency": "FCFA",
+      "step": 4,
+      "status": "approved",
+      "metadata": {
+        "uptimePct": 99.98,
+        "apiRequests24h": 184520,
+        "aiCopilotLatencyMs": 42,
+        "activeContainers": 16
+      },
+      "auditLog": [
+        {
+          "step": 1,
+          "role": "service",
+          "by": "Ingénieur Support Cloud",
+          "at": "2026-10-24 07:00",
+          "note": "Surveillance proactive des conteneurs ERP et bases de données."
+        },
+        {
+          "step": 2,
+          "role": "housekeeping",
+          "by": "DevOps Lead",
+          "at": "2026-10-24 08:30",
+          "note": "Mise à niveau cluster Kubernetes et patch de sécurité appliqué."
+        },
+        {
+          "step": 3,
+          "role": "finance",
+          "by": "FinOps Auditor",
+          "at": "2026-10-24 10:15",
+          "note": "Audit de consommation bande passante et compute sous budget."
+        },
+        {
+          "step": 4,
+          "role": "direction",
+          "by": "Chief Technology Officer (CTO)",
+          "at": "2026-10-24 11:30",
+          "note": "Certification de résilience opérationnelle délivrée."
+        }
+      ]
+    }
+  ]
+}
