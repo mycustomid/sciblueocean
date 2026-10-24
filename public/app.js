@@ -34,6 +34,7 @@
     clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     utensils:'<path d="M18 2v6a3 3 0 01-3 3 3 3 0 01-3-3V2M15 2v18M6 2v7a2 2 0 002 2 2 2 0 002-2V2M8 11v9"/>',
     wrench:'<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
+    bolt:'<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>',
     moon:'<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>'
   };
 
@@ -917,6 +918,7 @@
       pending: ["En attente", 'Pending'],
       done: ["Clôturé / Prêt", 'Done / Ready'],
       healthy: ["Opérationnel", 'Operational'],
+      watch: ["Sous surveillance / Actif", 'Active / Monitored'],
       issue: ["Incident signalé", 'Issue reported'],
       open: ["Ouvert / Actif", 'Open'],
       closed: ["Soldé & Clôturé", 'Settled & Closed'],
@@ -2094,10 +2096,11 @@
       `;
     }
     if (p.id !== 'property') {
-      return `
-        ${btn('open-login-gate', `⊞ ${tr('Portail 9 Produits','9-Product Portal')}`, 'outline')}
-        ${btn('switch-role-step', `${icon('plus')}${tr('Nouveau Dossier (Étape 1)','New Step 1 Entry')}`, 'primary', 'data-role="service"')}
-      `;
+      const actions = [btn('open-login-gate', `⊞ ${tr('Portail 9 Produits','9-Product Portal')}`, 'outline')];
+      if (view === 'reports' || view === 'folios') actions.push(btn('export-csv', `${icon('download')} CSV Export`));
+      else if (view === 'audit') actions.push(btn('div-audit-certify-all', `${icon('check')}${tr('Certifier Étape 3 → 4','Certify Step 3 → 4')}`, 'primary'));
+      else actions.push(btn('switch-role-step', `${icon('plus')}${tr('Nouveau Dossier (Étape 1)','New Step 1 Entry')}`, 'primary', 'data-role="service"'));
+      return actions.join(' ');
     }
     switch (view) {
       case 'bookings': return can('booking') ? btn('new-booking', `${icon('plus')}${tr('Créer une réservation','Create reservation')}`, 'primary') : '';
@@ -2198,11 +2201,13 @@
   function renderBookings() {
     const p = currentProduct();
     if (p.id !== 'property') {
-      const list = (db.divisionRecords[p.id] || []).filter(rec => `${rec.id} ${rec.client} ${rec.itemFr} ${rec.itemEn} ${rec.category}`.toLowerCase().includes(filter.toLowerCase()));
+      let list = (db.divisionRecords[p.id] || []).filter(rec => `${rec.id} ${rec.client} ${rec.itemFr} ${rec.itemEn} ${rec.category}`.toLowerCase().includes(filter.toLowerCase()));
+      if (selectedDate) list = list.filter(rec => rec.date === selectedDate);
       return `
         <div class="toolbar">
           <div class="toolbar-group">
             <label class="search-field">${icon('search')}<input id="searchInput" data-filter placeholder="${tr('Rechercher réf, client, lot, opération...','Search ref, client, batch, operation...')}" value="${esc(filter)}"/></label>
+            ${selectedDate ? `<div class="inline-flex"><span class="pill active">${esc(dateLabel(selectedDate,lang,true))}</span>${btn('clear-date','✕','outline btn-small')}</div>` : ''}
           </div>
           <p class="hint">${list.length} ${tr('dossiers opérationnels actifs dans le Flowchart','active operational dossiers in Flowchart')} (${esc(p.odooModel)})</p>
         </div>
@@ -2225,7 +2230,7 @@
                     <td class="mono"><strong>${money(rec.amount)}</strong></td>
                     <td>
                       <div class="toolbar-group">
-                        ${rec.step < 4 ? btn('div-advance-step', `Étape ${rec.step+1} →`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : !rec.approvedByBoss ? btn('div-boss-approve', `★ Signer`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : `<span class="status confirmed">✓ Signé</span>`}
+                        ${rec.step < 4 ? btn('div-advance-step', `Étape ${rec.step+1} →`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : !rec.approvedByBoss ? (role === 'direction' ? btn('div-boss-approve', `★ Signer`, 'primary btn-small', `data-id="${esc(rec.id)}"`) : `<span class="status occupied">★ Visa Boss Requis</span>`) : `<span class="status confirmed">✓ Signé</span>`}
                         ${btn('print-div-record', `🖨 PDF`, 'outline btn-small', `data-id="${esc(rec.id)}"`)}
                       </div>
                     </td>
@@ -2511,7 +2516,7 @@
               <p class="service-price mono">${money(s.price)}</p>
             </div>
             <div>
-              ${p.id === 'property' ? `<button type="button" class="btn btn-outline btn-small" style="width:100%" data-action="quick-post-service" data-srv-id="${esc(s.id)}">${icon('plus')}${tr('Imputer sur Folio','Post to Folio')}</button>` : `<button type="button" class="btn btn-primary btn-small" style="width:100%" data-action="switch-role-step" data-role="service">${icon('plus')}${tr('Saisir au Guichet (Étape 1)','Open in Step 1 Counter')}</button>`}
+              ${p.id === 'property' ? `<button type="button" class="btn btn-outline btn-small" style="width:100%" data-action="quick-post-service" data-srv-id="${esc(s.id)}">${icon('plus')}${tr('Imputer sur Folio','Post to Folio')}</button>` : `<button type="button" class="btn btn-primary btn-small" style="width:100%" data-action="switch-role-step" data-role="service" data-item-id="${esc(s.id)}">${icon('plus')}${tr('Saisir au Guichet (Étape 1)','Open in Step 1 Counter')}</button>`}
             </div>
           </article>
         `).join('')}
@@ -2576,7 +2581,10 @@
               <h3>${esc(r.client)}</h3>
               <p>${esc(tr(r.itemFr, r.itemEn))}</p>
               <div class="quiet-box" style="margin:8px 0;padding:8px 10px;font-size:10px">${tr('Responsable :','Handler:')} <b>${esc(r.operator)}</b> · ${esc(r.paymentMethod)}</div>
-              <div class="guest-meta"><span>Volume : <b class="mono">${money(r.amount)}</b></span><span class="mono">Étape ${r.step}/4</span></div>
+              <div class="guest-meta" style="margin-bottom:8px"><span>Volume : <b class="mono">${money(r.amount)}</b></span><span class="mono">Étape ${r.step}/4</span></div>
+              <div style="border-top:1px solid #eef2f1;padding-top:8px;display:flex;justify-content:flex-end">
+                ${btn('print-div-record', `🖨 ${tr('Pièce PDF','PDF Slip')}`, 'outline btn-small', `data-id="${esc(r.id)}"`)}
+              </div>
             </article>
           `).join('')}
         </div>
@@ -2726,7 +2734,7 @@
               <p>${esc(u.zone)} — ${esc(u.specs.join(' · '))}</p>
               <div class="ops-footer">
                 ${statusChip(u.status === 'available' || u.status === 'inspected' ? 'healthy' : 'watch')}
-                <span class="mono soft" style="font-size:11px">${money(u.rate)}</span>
+                ${btn('div-unit-toggle', u.status === 'available' || u.status === 'inspected' ? tr('En service','Active') : tr('En maintenance','Standby'), 'outline btn-small', `data-id="${esc(u.id)}"`)}
               </div>
             </article>
           `).join('')}
@@ -3096,6 +3104,15 @@
   }
 
   function exportFoliosCSV() {
+    const p = currentProduct();
+    if (p.id !== 'property') {
+      const list = db.divisionRecords[p.id] || [];
+      const header = ['ID Dossier', 'Étape', 'Client / Entité', 'Catégorie', 'Opération', 'Qté', 'Prix Unitaire XAF', 'Montant Total XAF', 'Mode Règlement', 'Opérateur', 'Date'];
+      const rows = list.map(r => [r.id, `Étape ${r.step}/4`, r.client, r.category, tr(r.itemFr, r.itemEn), r.qty, r.unitPrice, r.amount, r.paymentMethod, r.operator, r.date]);
+      download('\ufeff' + [header, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n'), `${p.id}-export-erp.csv`, 'text/csv;charset=utf-8');
+      notify(tr(`Export CSV (${p.repo}) téléchargé avec succès`,`CSV Export downloaded`));
+      return;
+    }
     const header = ['Folio ID', 'Booking ID', 'Guest Name', 'Room', 'Room Charges XAF', 'Service Charges XAF', 'Total Gross XAF', 'Paid XAF', 'Balance XAF', 'Status'];
     const rows = db.folios.map(f => { const fm = folioMetrics(f); return [f.id, f.bookingId, guestFor(f.guestId).name, f.roomId, fm.roomTotal, fm.serviceTotal, fm.totalGross, fm.totalPaid, fm.balance, f.status]; });
     download('\ufeff' + [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n'), 'blue-line-erp-export.csv', 'text/csv;charset=utf-8');
@@ -3156,8 +3173,11 @@
           const p = currentProduct();
           if (!p.roles[role]) role = 'direction';
           view = 'overview';
+          filter = '';
+          selectedDate = '';
           gateOpen = false;
           render();
+          window.scrollTo({ top: 0, behavior: 'instant' });
           notify(`${tr('Filiale active :','Active Division:')} ${tr(p.nameFr, p.nameEn)}`);
         }
         break;
@@ -3168,8 +3188,11 @@
         productId = nextProd;
         role = nextRole;
         view = 'overview';
+        filter = '';
+        selectedDate = '';
         gateOpen = false;
         render();
+        window.scrollTo({ top: 0, behavior: 'instant' });
         notify(`${tr('Poste ouvert :','Terminal opened:')} ${tr(currentRoleMeta().fr, currentRoleMeta().en)}`);
         break;
       }
@@ -3180,6 +3203,19 @@
           role = nextRole;
           view = 'overview';
           render();
+          window.scrollTo({ top: 0, behavior: 'instant' });
+          if (button.dataset.itemId) {
+            const item = p.catalog.find(c => c.id === button.dataset.itemId);
+            if (item) {
+              const sel = $('#divItemSelect');
+              const priceIn = $('#divPriceInput');
+              const clientIn = $('#divClientInput');
+              if (sel) sel.value = item.id;
+              if (priceIn) priceIn.value = item.price;
+              if (clientIn && !clientIn.value) clientIn.value = `Dossier ${p.id.toUpperCase()} · Lot #${Math.floor(100 + Math.random()*899)}`;
+              clientIn?.focus();
+            }
+          }
           notify(`${tr('Bascule sur le poste :','Switched to terminal:')} ${tr(currentRoleMeta().fr, currentRoleMeta().en)}`);
         }
         break;
@@ -3259,6 +3295,19 @@
           if (priceIn) priceIn.value = item.price;
           if (clientIn && !clientIn.value) clientIn.value = `Dossier ${p.id.toUpperCase()} · Lot #${Math.floor(100 + Math.random()*899)}`;
           clientIn?.focus();
+          notify(tr(`Article ${item.id} sélectionné au guichet !`, `Item ${item.id} selected in terminal!`));
+        }
+        break;
+      }
+      case 'div-unit-toggle': {
+        const p = currentProduct();
+        const units = DIV_UNITS_SEED[p.id] || [];
+        const u = units.find(x => x.id === id);
+        if (u) {
+          u.status = (u.status === 'available' || u.status === 'inspected') ? 'occupied' : 'available';
+          save('toggle-div-unit', `${p.id}:${u.id}:${u.status}`);
+          render();
+          notify(tr(`Statut unité ${u.id} mis à jour : ${statusLabel(u.status)}`, `Unit ${u.id} status updated to ${statusLabel(u.status)}`));
         }
         break;
       }
@@ -3291,8 +3340,12 @@
         const list = db.divisionRecords[p.id] || [];
         let certifiedCount = 0;
         list.forEach(r => {
-          if (r.step < 4) { r.step = 4; certifiedCount += 1; }
+          if (r.step === 3) { r.step = 4; certifiedCount += 1; }
         });
+        if (certifiedCount === 0) {
+          notify(tr('Aucun dossier en attente à l’Étape 3 (Audit).', 'No pending dossiers at Step 3 (Audit).'), true);
+          break;
+        }
         save('div-audit-certify-all', `${p.id}:${certifiedCount}`);
         render();
         notify(tr(`${certifiedCount} dossier(s) certifié(s) conforme(s) et transmis à la Direction Générale (Étape 4) !`, `${certifiedCount} dossier(s) certified and pushed to Step 4 Boss!`));
@@ -3573,6 +3626,9 @@
       closeModal();
       render();
       notify(`${tr('Poste actif :','Active Terminal:')} ${tr(currentRoleMeta().fr, currentRoleMeta().en)}`);
+    }
+    if (event.target.matches('#posFolioSelect')) {
+      activeFolioId = event.target.value;
     }
     if (event.target.matches('[data-booking-filter]')) {
       bookingFilter = event.target.value;
