@@ -4,5 +4,5 @@ dist/
 .vercel/
 __pycache__/
 .DS_Store
-
-.vercel
+.blue-ocean-backup*
+*.sqlite3
