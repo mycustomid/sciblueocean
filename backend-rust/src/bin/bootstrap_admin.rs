@@ -19,7 +19,7 @@ async fn main()->Result<(),Box<dyn std::error::Error>> {
         .bind(&email).fetch_optional(&pool).await?;
     if existing.is_some(){return Err("Email already exists: do not rerun bootstrap on existing users".into())}
     let salt=SaltString::generate(&mut OsRng);
-    let encoded=Argon2::default().hash_password(password.as_bytes(),&salt)?.to_string();
+    let encoded=Argon2::default().hash_password(password.as_bytes(),&salt).map_err(|e| e.to_string())?.to_string();
     let mut tx=pool.begin().await?;
     let entity_id:Uuid=sqlx::query_scalar("INSERT INTO legal_entities(legal_name) VALUES($1) RETURNING id")
         .bind(company).fetch_one(&mut *tx).await?;

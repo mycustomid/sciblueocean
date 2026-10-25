@@ -17,7 +17,7 @@ async fn main()->Result<(),Box<dyn std::error::Error>>{
   let pool=PgPoolOptions::new().max_connections(2).connect(&url).await?;
   let exists:bool=sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM legal_entities WHERE id=$1)").bind(entity_id).fetch_one(&pool).await?;
   if !exists {return Err("No matching legal entity".into())}
-  let encoded=Argon2::default().hash_password(password.as_bytes(),&SaltString::generate(&mut OsRng))?.to_string();
+  let encoded=Argon2::default().hash_password(password.as_bytes(),&SaltString::generate(&mut OsRng)).map_err(|e| e.to_string())?.to_string();
   let mut tx=pool.begin().await?;
   let user_id:Uuid=sqlx::query_scalar("INSERT INTO app_users(email,display_name,password_hash) VALUES($1,$2,$3) RETURNING id")
       .bind(email).bind("Pilot Operator").bind(encoded).fetch_one(&mut *tx).await?;
