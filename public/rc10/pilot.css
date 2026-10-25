@@ -1,0 +1,7 @@
+@import url('../rc8/pilot.css');
+/* RC9 independent UI enhancement. No hidden controls. */
+.rc9-partial .panel { min-width: 0; }
+.rc9-partial select,.rc9-partial input {max-width:100%;}
+.rc9-partial pre {max-height:400px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:#0c2433;color:#f3f6f8;border-radius:12px;padding:18px;font-size:12px;}
+.rc9-partial .panel:focus-within {outline:1px solid rgba(201,157,91,.5);outline-offset:2px;}
+@media(max-width:760px){.rc9-partial .form-columns{grid-template-columns:1fr!important;}.rc9-partial .two{grid-template-columns:1fr!important;}}

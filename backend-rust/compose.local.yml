@@ -1,0 +1,33 @@
+# Local-only integration environment. Do not copy credentials to production.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: erp_user
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:?set LOCAL_DB_PASSWORD}
+      POSTGRES_DB: blue_line_erp
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - blueline_dev_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U erp_user -d blue_line_erp"]
+      interval: 5s
+      retries: 8
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://erp_user:${LOCAL_DB_PASSWORD}@postgres:5432/blue_line_erp
+      ERP_LISTEN_ADDR: 0.0.0.0:8085
+      ERP_ENV: development
+      ERP_AUTO_MIGRATE: "true"
+      ERP_ALLOWED_ORIGINS: http://localhost:4321,http://127.0.0.1:4321
+    ports:
+      - "127.0.0.1:8085:8085"
+volumes:
+  blueline_dev_pg:

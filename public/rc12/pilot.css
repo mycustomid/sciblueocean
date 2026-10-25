@@ -1,0 +1,8 @@
+@import url('../rc10/pilot.css');
+/* RC12 stock-control progressive enhancement. */
+.rc12-warehouse .panel{min-width:0}
+.rc12-warehouse select,.rc12-warehouse input,.rc12-warehouse textarea{max-width:100%}
+.rc12-warehouse pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:440px;overflow:auto;background:#0c2433;color:#eef4f6;padding:18px;border-radius:12px;font-size:12px}
+.rc12-warehouse [data-approval]{white-space:nowrap}
+.rc12-warehouse .panel:focus-within{outline:1px solid #d4a867;outline-offset:2px}
+@media(max-width:760px){.rc12-warehouse .form-columns,.rc12-warehouse .two{grid-template-columns:1fr!important}}

@@ -356,7 +356,7 @@
       odooId: 'group_executive_manager',
       fr: 'Direction Générale (Boss)',
       en: 'General Manager (Boss)',
-      views: ['overview','modulesReview','rooms','bookings','folios','services','calendar','guests','housekeeping','maintenance','operations','audit','reports','settings'],
+      views: ['overview','modulesReview','modulesBenchmark','rooms','bookings','folios','services','calendar','guests','housekeeping','maintenance','operations','audit','reports','settings'],
       actions: ['booking','checkin','room','guest','payment','folio_charge','folio_close','task','maintenance','audit_run','ops','export','reset']
     },
     reception: {
@@ -384,14 +384,15 @@
       odooId: 'group_accountant_auditor',
       fr: 'Poste Comptabilité, Contrôle & Audit (Étape 3)',
       en: 'Accounting, Compliance & Audit (Step 3)',
-      views: ['overview','modulesReview','folios','audit','reports','bookings'],
+      views: ['overview','modulesReview','modulesBenchmark','folios','audit','reports','bookings'],
       actions: ['payment','folio_close','audit_run','export']
     }
   };
 
   const navigation = [
     { id:'overview', icon:'dashboard', group:0, fr:"Terminal du Poste Actif", en:'Active Role Terminal', descFr:'Espace opérationnel dédié à votre poste dans le Flowchart Start-to-End.', descEn:'Dedicated operational workspace for your role in the Start-to-End Flowchart.' },
-    { id:'modulesReview', icon:'chart', group:0, fr:'Revue & Audit des 9 Modules ERP', en:'9-Module ERP Executive Audit', descFr:'Console centrale d’inspection, banc d’essai et connexion backend des 9 filiales.', descEn:'Central inspection console, test bench and live backend API sync for all 9 modules.' },
+    { id:'modulesReview', icon:'chart', group:0, fr:'Revue & Audit des 9 Modules ERP', en:'9-Module ERP Executive Audit', descFr:'Console de démonstration et données locales des neuf domaines.', descEn:'Nine-domain review with sample data stored locally in this browser.' },
+    { id:'modulesBenchmark', icon:'shield', group:0, fr:'Comparatif ERP & Preuves', en:'ERP Comparison & Evidence', descFr:'Évaluer les deux ERP sur 9 domaines avec preuves et export CSV/JSON.', descEn:'Compare two ERP solutions across nine domains with evidence and CSV/JSON export.' },
     { id:'rooms', icon:'bed', group:0, fr:'Chambres & Parc Immobilier', en:'Rooms & Property Rack', descFr:'Plan de chambre par étage, commodités et statut en direct.', descEn:'Floor rack matrix, room amenities and live statuses.' },
     { id:'bookings', icon:'book', group:0, fr:'Réservations & Baux', en:'Reservations & Leases', descFr:'Gestion des séjours et pipeline de validation Odoo.', descEn:'Stay management and Odoo workflow pipeline.' },
     { id:'folios', icon:'fileText', group:0, fr:'Folios & Grand Livre', en:'Folios & Ledger', descFr:'Ledger financier centralisé (chambre, restauration, blanchisserie).', descEn:'Centralized guest billing folio (room, F&B, laundry).' },
@@ -2091,6 +2092,7 @@
     const viewMap = {
       overview: renderOverview,
       modulesReview: () => (window.renderModulesReviewView ? window.renderModulesReviewView() : renderOverview()),
+      modulesBenchmark: () => (window.renderERPReadinessBenchmark ? window.renderERPReadinessBenchmark() : renderOverview()),
       rooms: renderRooms,
       bookings: renderBookings,
       folios: renderFolios,
@@ -2110,6 +2112,7 @@
 
   function headingActions() {
     const p = currentProduct();
+    if (view === 'modulesBenchmark') return btn('switch-view-overview', `⇦ ${tr('Retour au Terminal','Back to Terminal')}`, 'outline');
     if (view === 'modulesReview') {
       return `
         ${btn('open-login-gate', `⊞ ${tr('Portail 9 Produits','9-Product Portal')}`, 'outline')}

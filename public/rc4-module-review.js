@@ -5,13 +5,13 @@
   'use strict';
 
   let activeReviewModId = 'sugar';
-  let backendHealth = { status: 'ONLINE', latencyMs: 14, driver: 'Atomic JSON Store' };
+  let backendHealth = { status: 'NOT_CHECKED', latencyMs: null, driver: 'Demo API, not an ERP database' };
   let apiConsoleState = {
     method: 'GET',
     url: '/api/health',
-    status: 200,
-    timeMs: 12,
-    response: { status: 'HEALTHY', service: 'Blue Line ERP Engine', modules: 9, uptime: '3600s' }
+    status: null,
+    timeMs: null,
+    response: { status: 'NOT_CHECKED', note: 'Click Ping API to test the demo endpoint' }
   };
 
   const moneyFmt = v => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Math.round(Number(v) || 0)) + ' FCFA';
@@ -26,10 +26,10 @@
       if (res.ok) {
         const data = await res.json();
         backendHealth = {
-          status: 'ONLINE',
+          status: data.mode || 'DEMO_API',
           latencyMs: Math.round(t1 - t0),
-          driver: data.database?.driver || 'Persistent Atomic JSON Store',
-          stats: data.stats
+          driver: data.persistence || 'NO_SERVER_WRITES',
+          stats: null
         };
       }
     } catch (e) {
@@ -42,7 +42,7 @@
     const db = window.db || { divisionRecords: {} };
 
     // Calculate aggregated stats across 9 products
-    let totalConsolidated = 0;
+    let totalConsolidated = 0; // Sum of sample nominal values, NOT accounting consolidation
     let totalDossiers = 0;
     const globalSteps = { 1: 0, 2: 0, 3: 0, 4: 0 };
 
@@ -80,13 +80,14 @@
             </div>
             <h2>Revue des 9 Modules ERP & Banc d'Essai Backend</h2>
             <p>
-              Supervision consolidée de la gouvernance, des flux opérationnels Start-to-End et des tables de données réelles pour l'ensemble du Groupe Blue Line Capital.
+              Inspection des exemples métier du Groupe. État du backend vérifiable ; données du navigateur distinctes de la base serveur. Les chiffres ci-dessous sont des exemples, pas un reporting comptable.
             </p>
           </div>
           <div class="rev-header-badges">
+            <button type="button" class="btn btn-outline btn-small" data-view="modulesBenchmark">⇄ Comparer deux ERP avec preuves</button>
             <div class="rev-badge-online">
               <span class="rev-pulse"></span>
-              <span>Backend API : ${escHtml(backendHealth.status)} (${backendHealth.latencyMs}ms)</span>
+              <span>API démo : ${escHtml(backendHealth.status)} (${backendHealth.latencyMs ?? '—'}ms)</span>
             </div>
             <button type="button" class="btn btn-dark btn-small" data-action="rev-ping-api" data-url="/api/health" data-method="GET">
               ⚡ Ping /api/health
@@ -101,18 +102,18 @@
         <div class="rev-kpi-ribbon">
           <div class="rev-kpi-tile">
             <span class="rev-kpi-label">Périmètre Opérationnel</span>
-            <div class="rev-kpi-val">9 Filiales (100%)</div>
+            <div class="rev-kpi-val">9 Domaines Démo</div>
             <span class="rev-kpi-sub">Architecture modulaire Odoo & Frappe</span>
           </div>
           <div class="rev-kpi-tile">
             <span class="rev-kpi-label">Volume Financier Traité</span>
             <div class="rev-kpi-val">${moneyFmt(totalConsolidated)}</div>
-            <span class="rev-kpi-sub">Consolidation SYSCOHADA temps réel</span>
+            <span class="rev-kpi-sub">Total nominal de dossiers démo (NON consolidé)</span>
           </div>
           <div class="rev-kpi-tile">
-            <span class="rev-kpi-label">Dossiers en Base Serveur</span>
+            <span class="rev-kpi-label">Dossiers en navigateur (local)</span>
             <div class="rev-kpi-val">${totalDossiers} Transactions</div>
-            <span class="rev-kpi-sub">Persistance JSON atomique & audit trail</span>
+            <span class="rev-kpi-sub">État local : démonstration uniquement</span>
           </div>
           <div class="rev-kpi-tile">
             <span class="rev-kpi-label">État du Pipeline Global</span>
@@ -205,11 +206,11 @@
             </div>
           </div>
 
-          <!-- 4B. LIVE BACKEND RECORDS TABLE -->
+          <!-- 4B. LOCAL DEMO RECORDS TABLE -->
           <div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
               <h5 style="margin:0;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:#475569">
-                Enregistrements Réels en Base (${activeRecs.length} Transactions)
+                Dossiers de démonstration locale (${activeRecs.length} exemples)
               </h5>
               <span style="font-size:12px;color:#64748b">
                 Volume du module : <b>${moneyFmt(activeMod.totalAmount)}</b>
@@ -276,18 +277,18 @@
             </div>
           </div>
 
-          <!-- 4C. TEST BENCH & LIVE API CONSOLE SIDE-BY-SIDE -->
+          <!-- 4C. LOCAL TEST BENCH & READ-ONLY API CONSOLE -->
           <div class="rev-two-col">
             <!-- TEST BENCH -->
             <div class="rev-box">
-              <h4 class="rev-box-title">Banc d'Essai : Injecter une Transaction Réelle</h4>
+              <h4 class="rev-box-title">Banc d'Essai : Transaction Simulée Locale</h4>
               <p style="margin:0;font-size:12px;color:#64748b">
-                Générez une opération réelle validée par le schéma de données de <b>${escHtml(activeMod.nameFr)}</b>.
+                Simulez une opération dans le navigateur, sans écriture serveur, pour le domaine <b>${escHtml(activeMod.nameFr)}</b>.
               </p>
               <form id="revTestBenchForm" class="rev-form-grid" data-mod-id="${activeMod.id}">
                 <div class="rev-form-group">
                   <label for="tbClient">Tiers / Client / Fournisseur</label>
-                  <input type="text" id="tbClient" name="party" required value="Partenaire Officiel BLC" placeholder="ex: Coopérative Planteurs" />
+                  <input type="text" id="tbClient" name="party" required value="Partenaire fictif (démo)" placeholder="ex: Coopérative Planteurs" />
                 </div>
                 <div class="rev-form-group">
                   <label for="tbCategory">Catégorie Métier</label>
@@ -302,17 +303,14 @@
                   <input type="number" id="tbAmount" name="amount" required min="1000" step="1000" value="15000000" />
                 </div>
                 <div class="rev-form-group">
-                  <label for="tbStep">Étape Initiale du Workflow</label>
+                  <label for="tbStep">Étape initiale (démo)</label>
                   <select id="tbStep" name="step">
-                    <option value="1">Étape 1 · Guichet / Intake</option>
-                    <option value="2">Étape 2 · Terrain / Usine</option>
-                    <option value="3" selected>Étape 3 · Audit / Contrôle</option>
-                    <option value="4">Étape 4 · Direction / Boss</option>
+                    <option value="1" selected>Étape 1 · Guichet / Intake</option>
                   </select>
                 </div>
                 <div class="rev-form-group full" style="margin-top:6px">
                   <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
-                    ➕ Enregistrer dans le Backend (POST /api/records)
+                    ➕ Ajouter au navigateur (simulation)
                   </button>
                 </div>
               </form>
@@ -321,13 +319,13 @@
             <!-- API DEVELOPER CONSOLE -->
             <div class="rev-box">
               <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-                <h4 class="rev-box-title">Console REST API en Direct</h4>
+                <h4 class="rev-box-title">Inspection REST API (lecture seule)</h4>
                 <div class="rev-console-status">
-                  <span>●</span> <span>${escHtml(apiConsoleState.method)} ${escHtml(apiConsoleState.url)} · ${apiConsoleState.status} OK (${apiConsoleState.timeMs}ms)</span>
+                  <span>●</span> <span>${escHtml(apiConsoleState.method)} ${escHtml(apiConsoleState.url)} · HTTP ${apiConsoleState.status ?? '—'} (${apiConsoleState.timeMs}ms)</span>
                 </div>
               </div>
               <p style="margin:0;font-size:12px;color:#64748b">
-                Testez les points de terminaison REST du serveur Vercel/Node.js et examinez la réponse JSON en temps réel.
+                Testez les endpoints de démonstration ; les requêtes privées peuvent renvoyer 403. Aucun ordre de paiement ni approbation n'est exécuté côté serveur.
               </p>
               <div style="display:flex;gap:6px;flex-wrap:wrap">
                 <button type="button" class="btn btn-small btn-dark" data-action="rev-ping-api" data-url="/api/health" data-method="GET">
@@ -409,15 +407,10 @@
         if (targetStep === 4) rec.approvedByBoss = true;
         if (typeof window.save === 'function') window.save('rev-advance-step', `${modId}:${recId}:${targetStep}`);
 
-        // Try syncing to real backend if online
-        fetch('/api/workflow', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ recordId: recId, targetStep, operatorName: 'Direction Générale (Audit Hub)', note: `Validation étape ${targetStep}` })
-        }).catch(() => {});
+        // Explicitly local: never claim an unauthenticated browser click is a server approval.
 
         if (typeof window.notify === 'function') {
-          window.notify(`Dossier ${recId} promu à l'Étape ${targetStep}/4 !`);
+          window.notify(`SIMULATION LOCALE : dossier ${recId}, étape ${targetStep}/4 (non synchronisé).`);
         }
         if (typeof window.render === 'function') window.render();
       }
@@ -446,7 +439,7 @@
           </div>
 
           <div>
-            <h5 style="margin:0 0 8px;font-size:12px;text-transform:uppercase;color:#475569">Journal d'Audit & Traçabilité (SYSCOHADA)</h5>
+            <h5 style="margin:0 0 8px;font-size:12px;text-transform:uppercase;color:#475569">Historique simulé du dossier (non certifié)</h5>
             <div style="display:flex;flex-direction:column;gap:8px">
               <div style="background:#f0fdf4;border-left:3px solid #10b981;padding:8px 12px;font-size:12px">
                 <b>Étape 1 (Guichet/Intake) :</b> Dossier initié et vérifié par l'opérateur de saisie.
@@ -541,10 +534,14 @@
     const category = String(formData.get('category') || '').trim();
     const desc = String(formData.get('desc') || '').trim();
     const amount = Number(formData.get('amount') || 0);
-    const step = Number(formData.get('step') || 3);
+    const step = 1;
+    if (!party || desc.length < 3 || !Number.isFinite(amount) || amount <= 0) {
+      if (window.notify) window.notify('Formulaire invalide : tiers, description et montant positif requis.');
+      return;
+    }
 
     const prefix = modId.toUpperCase().slice(0, 3);
-    const newId = `${prefix}-${Math.floor(2610 + Math.random() * 890)}`;
+    const newId = `${prefix}-DEMO-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`;
     const today = new Date().toISOString().slice(0, 10);
 
     const newRec = {
@@ -558,8 +555,8 @@
       qty: 1,
       unitPrice: amount,
       amount,
-      paymentMethod: 'Virement Certifié',
-      operator: 'Direction Générale (Test Bench)',
+      paymentMethod: 'SIMULATION / AUCUN TRANSFERT',
+      operator: 'Demo operator (no authenticated identity)',
       notesFr: `Transaction injectée via la Console de Revue Exécutive. Étape ${step}/4.`,
       notesEn: `Transaction injected from Executive Review Console. Step ${step}/4.`,
       date: today,
@@ -576,39 +573,11 @@
       window.save('test-bench-record-created', `${modId}:${newId}:${amount}`);
     }
 
-    // Try posting to real backend
-    try {
-      const res = await fetch('/api/records', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: newId,
-          moduleId: modId,
-          party,
-          category,
-          desc,
-          amount,
-          step,
-          status: newRec.status,
-          date: today
-        })
-      });
-      if (res.ok) {
-        const resJson = await res.json();
-        apiConsoleState = {
-          method: 'POST',
-          url: '/api/records',
-          status: 201,
-          timeMs: 18,
-          response: resJson
-        };
-      }
-    } catch (e) {
-      // Offline fallback
-    }
+    // RC5: no POST from the unauthenticated client test bench.
+    // Browser storage is explicitly separate from the server API.
 
     if (typeof window.notify === 'function') {
-      window.notify(`Transaction ${newId} (${moneyFmt(amount)}) enregistrée avec succès dans le module ${modId} !`);
+      window.notify(`SIMULATION LOCALE : ${newId} (${moneyFmt(amount)}) sauvegardée dans ce navigateur, pas en serveur.`);
     }
 
     if (typeof window.render === 'function') window.render();

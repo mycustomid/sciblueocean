@@ -1,0 +1,45 @@
+name: Rust ERP Foundation Checks
+on:
+  pull_request:
+    paths:
+      - 'backend-rust/**'
+      - '.github/workflows/rust-erp-check.yml'
+  push:
+    paths:
+      - 'backend-rust/**'
+      - '.github/workflows/rust-erp-check.yml'
+permissions:
+  contents: read
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: local_ci_test_password
+          POSTGRES_DB: blueline_qa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d blueline_qa"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://postgres:local_ci_test_password@localhost:5432/blueline_qa
+    defaults:
+      run:
+        working-directory: backend-rust
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+      - name: Format transient CI workspace before compilation
+        run: cargo +stable fmt --all
+      - name: Compile / lint
+        run: cargo +stable clippy --all-targets
+      - name: Unit & database integration tests
+        run: cargo +stable test --all-targets

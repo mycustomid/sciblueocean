@@ -1,0 +1,27 @@
+name: RC7 Pilot JS Evidence Checks
+on:
+  push:
+    paths:
+      - 'public/rc7/**'
+      - 'tests/rc7-pilot.test.mjs'
+      - '.github/workflows/rc7-pilot-check.yml'
+  pull_request:
+    paths:
+      - 'public/rc7/**'
+      - 'tests/rc7-pilot.test.mjs'
+      - '.github/workflows/rc7-pilot-check.yml'
+permissions:
+  contents: read
+jobs:
+  js-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check Node runtime
+        run: node --version
+      - name: Node syntax and pilot tests
+        run: |
+          node --check public/rc7/pilot.js
+          node --test tests/rc7-pilot.test.mjs

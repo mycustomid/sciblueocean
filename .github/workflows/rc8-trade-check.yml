@@ -1,0 +1,28 @@
+name: RC8 Trade Checkpoint Contract
+on:
+  push:
+    paths:
+      - 'public/rc8/**'
+      - 'tests/rc8-contract.test.mjs'
+      - 'backend-rust/**'
+      - '.github/workflows/rc8-trade-check.yml'
+  pull_request:
+    paths:
+      - 'public/rc8/**'
+      - 'tests/rc8-contract.test.mjs'
+      - 'backend-rust/**'
+      - '.github/workflows/rc8-trade-check.yml'
+permissions:
+  contents: read
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Node syntax and checkpoint contract
+        run: |
+          node --check public/rc8/pilot.js
+          node --test tests/rc8-contract.test.mjs
+          node --test tests/rc5-api.test.mjs tests/rc5-benchmark.test.mjs tests/rc7-pilot.test.mjs

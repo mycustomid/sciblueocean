@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<meta name="theme-color" content="#0c2433" />
+<title>Blue Line — Rust ERP Pilot Workstation · RC12</title>
+<link rel="stylesheet" href="./pilot.css" />
+<script defer src="./pilot.js"></script>
+</head>
+<body>
+<div class="layout">
+<aside class="rail">
+  <div class="brand"><span class="monogram">BL</span><div>BLUE LINE<br><strong>ENTERPRISE CORE</strong></div></div>
+  <div class="rail-label">ARCHITECTURE PILOT · RC12</div>
+  <div class="rail-items"><a href="#connect">01 / API &amp; login</a><a href="#overview">02 / Entity oversight</a><a href="#records">03 / Domain records</a><a href="#ledger">04 / Accounting</a><a href="#evidence">05 / Audit evidence</a><a href="#trade">06 / Trade & Inventory</a><a href="#fulfilments">07 / Partial fulfilment</a><a href="#returns">08 / Controlled returns</a><a href="#rc12">09 / Warehouse & counts</a></div>
+  <div class="rail-bottom">RUST · AXUM<br>POSTGRESQL · SQLx<br><span>NOT PRODUCTION CERTIFIED</span></div>
+</aside>
+<main class="workspace">
+<header class="top"><div><span class="eyebrow">TECHNICAL SHOWCASE / EXECUTIVE REVIEW</span><h1>Enterprise core.<br><em>Built for evidence.</em></h1></div><div class="top-meta"><span id="apiState" role="status" class="signal">API NOT CONNECTED</span><span class="line">Pilot RC12 · 0.7 · FCFA / XAF</span></div></header>
+<div class="banner"><strong>READ-ONLY UNTIL LOGGED IN.</strong> This environment is for controlled development validation. No production access, regulatory certification, or live financial processing is implied.</div>
+<section class="section" id="connect"><div class="section-kicker">01 / CONNECTIVITY</div><h2>Session & legal entity</h2><p class="lead">Server-side authentication and entity-scoped permissions. Tokens exist only in this browser tab's memory, not in storage.</p>
+<div class="form-columns"><form id="connectForm" class="panel">
+  <label>Rust API base URL <input name="apiBase" value="http://127.0.0.1:8085" required aria-label="API URL" /></label>
+  <label>Legal entity UUID <input name="entityId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required /></label>
+  <label>Operator email <input name="email" type="email" required autocomplete="username" /></label>
+  <label>Password <input name="password" type="password" required autocomplete="current-password" /></label>
+  <div class="actions"><button type="button" id="probeBtn" class="secondary">Probe health</button><button class="primary" type="submit">Start secure session →</button></div>
+</form><div class="panel dark-panel"><div class="eyebrow">SESSION CONTEXT</div><div class="big" id="sessionState">Not authenticated</div><p id="entityState">Run the Rust service and use the bootstrap CLI to create a demo company. Each session is bound to a single legal entity.</p><div class="actions"><button type="button" class="secondary on-dark" id="logoutBtn">Revoke session</button></div></div></div>
+</section>
+<section class="section" id="overview"><div class="section-kicker">02 / COMPANY OVERSIGHT</div><h2>Operational status, not fabricated revenue</h2><p class="lead">Real counts returned by PostgreSQL for the selected legal entity. Financial figures are deliberately not presented as consolidated turnover.</p><div id="overviewCards" class="domains"><div class="placeholder">Log in to inspect company-scoped metrics.</div></div><div class="actions"><button type="button" id="refreshOverview" class="secondary">Refresh verified metrics</button><button type="button" id="showAudit" class="secondary">Recent audit events</button></div></section>
+<section class="section" id="records"><div class="section-kicker">02 / OPERATIONS</div><h2>Nine domains, one governed core</h2><p class="lead">Company-scoped records, idempotent creation, and review gates. This is a shared approval prototype, not yet nine fully implemented industry engines.</p><div id="domains" class="domains"><div class="placeholder">Authenticate to load the nine ERP domains.</div></div>
+<div class="form-columns"><form id="recordForm" class="panel"><h3>New domain record</h3><label>Module <select name="module_key" id="moduleSelect" required></select></label><label>Counterparty <input name="counterparty" required minlength="2" maxlength="240" placeholder="Example supplier" /></label><label>Description <textarea name="description" required minlength="3" maxlength="2000" placeholder="Describe the business operation"></textarea></label><label>Amount (XAF, integer) <input type="number" name="amount_xaf" min="0" step="1" required /></label><div class="actions"><button type="submit" class="primary">Create draft record →</button></div></form><div class="panel"><div class="subheading"><h3>Recent domain records</h3><button type="button" class="secondary" id="refreshRecords">Refresh</button></div><div class="table-scroll"><table><thead><tr><th>Record</th><th>Module</th><th>Amount XAF</th><th>Status</th><th>Evidence / Action</th></tr></thead><tbody id="recordsBody"><tr><td colspan="5">No authenticated data</td></tr></tbody></table></div><p class="hint">Approval stages: draft → submitted → manager approved → finance approved → approved. System administrator is not a business approver; a distinct reviewer is required for each approval stage.</p></div></div>
+</section>
+
+<section class="section rc8-trade" id="trade">
+  <div class="section-kicker">06 / PROCUREMENT · INVENTORY · SALES</div>
+  <h2>Procure. Receive. Ship. Reconcile.</h2>
+  <p class="lead">A bounded, auditable trading vertical. Receipts and shipments update PostgreSQL inventory and create <strong>draft</strong> double-entry journals in one transaction. No fabricated balances or automatic tax certification. Partial deliveries and fulfilment-linked returns are both supported in this RC12 pilot; no statutory credit notes or refunds.</p>
+  <div class="trade-top">
+    <div class="trade-indicator"><span class="eyebrow">ENTITY-SCOPED INVENTORY</span><strong id="tradeSummary">Sign in to inspect stock</strong><small id="tradeJournalStatus">Posting mappings not loaded</small></div>
+    <div class="actions"><button type="button" class="secondary" id="refreshTrade">Refresh trade evidence</button><button type="button" class="secondary" id="showMovements">Stock movements</button></div>
+  </div>
+  <div class="form-columns">
+    <form id="itemForm" class="panel"><h3>Master data / Item</h3><label>SKU <input required minlength="2" maxlength="48" name="sku" placeholder="PART-001" /></label><label>Product label <input required minlength="2" maxlength="240" name="label" placeholder="Steel bracket" /></label><label>Unit <select name="unit"><option value="each">Piece / each</option><option value="kg">Kilogram</option><option value="litre">Litre</option><option value="metre">Metre</option></select></label><button type="submit" class="primary">Register item →</button><p class="hint">Manager or finance role. Records are scoped to the logged-in legal entity.</p></form>
+    <form id="warehouseForm" class="panel"><h3>Master data / Warehouse</h3><label>Warehouse code <input required minlength="2" maxlength="48" name="code" placeholder="DLA-MAIN" /></label><label>Name <input required minlength="2" maxlength="240" name="label" placeholder="Douala Main Warehouse" /></label><button type="submit" class="primary">Register warehouse →</button><p class="hint">Manager role only. Complete the demo posting-account setup CLI before receiving/shipping orders.</p><div class="trade-map" id="tradeMapping">Accounting mappings will appear here.</div></form>
+  </div>
+  <div class="form-columns">
+    <form id="buyForm" class="panel"><span class="micro">01 / SOURCE PROCUREMENT</span><h3>Purchase order</h3>
+      <label>Warehouse <select name="warehouse_id" class="tradeWarehouse" required><option value="">Select warehouse</option></select></label>
+      <label>Supplier <input name="counterparty" required minlength="2" maxlength="240" placeholder="Example supplier" /></label>
+      <label>Item <select name="item_id" class="tradeItem" required><option value="">Select item</option></select></label>
+      <div class="two"><label>Quantity <input type="number" name="quantity" min="1" max="1000000" step="1" required /></label><label>Unit cost XAF <input type="number" name="unit_amount_xaf" min="1" max="1000000000" step="1" required /></label></div>
+      <button type="submit" class="primary">Create purchase draft →</button><p class="hint">Operator or manager creates. Another manager or executive approves; a different receiving operator records stock.</p>
+    </form>
+    <form id="saleForm" class="panel"><span class="micro">02 / CUSTOMER ORDER</span><h3>Sales order</h3>
+      <label>Warehouse <select name="warehouse_id" class="tradeWarehouse" required><option value="">Select warehouse</option></select></label>
+      <label>Customer <input name="counterparty" required minlength="2" maxlength="240" placeholder="Example customer" /></label>
+      <label>Item <select name="item_id" class="tradeItem" required><option value="">Select item</option></select></label>
+      <div class="two"><label>Quantity <input type="number" name="quantity" min="1" max="1000000" step="1" required /></label><label>Unit sale price XAF <input type="number" name="unit_amount_xaf" min="1" max="1000000000" step="1" required /></label></div>
+      <button type="submit" class="primary">Create sale draft →</button><p class="hint">Shipping checks actual stock under a database lock and calculates weighted-average COGS.</p>
+    </form>
+  </div>
+  <div class="panel"><div class="subheading"><div><span class="micro">03 / STOCK POSITION</span><h3>Verified warehouse balances</h3></div><span class="hint">From PostgreSQL. Never a cumulative sales metric.</span></div><div class="table-scroll"><table><thead><tr><th>Warehouse</th><th>SKU</th><th>Quantity</th><th>Inventory value XAF</th></tr></thead><tbody id="tradeBalances"><tr><td colspan="4">Authenticate to load balances</td></tr></tbody></table></div></div>
+  <div class="form-columns">
+    <div class="panel"><h3>Purchase control register</h3><div class="table-scroll"><table><thead><tr><th>Supplier</th><th>Total</th><th>State</th><th>Action</th></tr></thead><tbody id="purchasesBody"><tr><td colspan="4">No authenticated data</td></tr></tbody></table></div></div>
+    <div class="panel"><h3>Sales control register</h3><div class="table-scroll"><table><thead><tr><th>Customer</th><th>Total</th><th>State</th><th>Action</th></tr></thead><tbody id="salesBody"><tr><td colspan="4">No authenticated data</td></tr></tbody></table></div></div>
+  </div><p class="hint">For stock-impacting actions you must specify an open ledger period (YYYY-MM); journals are drafts pending independent accountant review. Legacy RC8 one-shot full receipt/shipment remains supported for untouched orders. Use the partial forms below for incremental fulfilments.</p>
+</section>
+
+<section class="section rc9-partial" id="fulfilments">
+  <div class="section-kicker">07 / PARTIAL RECEIPTS & SHIPMENTS · RC12</div>
+  <h2>Deliver in stages. Account for every movement.</h2>
+  <p class="lead">Select an approved purchase/sales order, inspect its open quantities, and receive or ship one item at a time. Every confirmed event produces an immutable stock movement and an independent <strong>draft</strong> journal; retries use an idempotency key.</p>
+  <div class="actions"><button type="button" class="secondary" id="refreshPartial">Load open orders</button><button type="button" class="secondary" id="showFulfilments">View fulfilment events</button></div>
+  <div class="form-columns">
+    <form id="partialPurchaseForm" class="panel">
+      <span class="micro">INBOUND · RECEIPT</span><h3>Receive part of an approved PO</h3>
+      <label>Purchase order <select required name="order_id" id="partialBuyOrder"><option value="">Load open orders</option></select></label>
+      <label>Outstanding item <select required name="item_id" id="partialBuyItem"><option value="">Select purchase order</option></select></label>
+      <div class="two"><label>Quantity received <input type="number" name="quantity" min="1" step="1" required/></label><label>GL period <input type="month" name="period_key" required/></label></div>
+      <button type="submit" class="primary">Confirm partial receipt →</button><p class="hint">Unfulfilled order quantities are preserved as backorders. Two separate users must create/approve and receive.</p>
+    </form>
+    <form id="partialSaleForm" class="panel">
+      <span class="micro">OUTBOUND · SHIPMENT</span><h3>Ship part of an approved SO</h3>
+      <label>Sales order <select required name="order_id" id="partialSaleOrder"><option value="">Load open orders</option></select></label>
+      <label>Outstanding item <select required name="item_id" id="partialSaleItem"><option value="">Select sales order</option></select></label>
+      <div class="two"><label>Quantity shipped <input type="number" name="quantity" min="1" step="1" required/></label><label>GL period <input type="month" name="period_key" required/></label></div>
+      <button type="submit" class="primary">Confirm partial shipment →</button><p class="hint">Stock is locked and checked in PostgreSQL. Unfulfilled sales quantities stay on backorder; no negative stock.</p>
+    </form>
+  </div>
+  <div class="panel"><div class="subheading"><h3>Outstanding quantity / audit notes</h3><span class="hint">Data comes from the Rust API. No offline approval.</span></div><pre id="partialEvidence" aria-live="polite">Authenticate, select an order and load its outstanding items.</pre></div>
+  <p class="hint">Returns against RC9 fulfilment events are available below. Statutory credit notes, cash refunds, tax invoices and posted GL reversals remain open tasks.</p>
+</section>
+
+
+<section class="section" id="returns">
+  <div class="section-kicker">08 / CONTROLLED RETURN · AUDIT FIRST</div>
+  <h2>Traceable merchandise returns.</h2>
+  <p class="lead">Returns must refer to an individual completed RC9 fulfilment. A different business manager authorizes each return; stock and a draft offsetting journal are written in one PostgreSQL transaction. Customer credit notes, vendor debit notes, tax and refunds are <strong>not issued</strong>.</p>
+  <div class="actions"><button type="button" id="rc10LoadEvents" class="secondary">Load returnable fulfilments</button><button type="button" id="rc10LoadReturns" class="secondary">Show confirmed returns</button></div>
+  <div class="form-columns">
+    <form class="panel" id="rc10ReturnForm">
+      <span class="micro">RC12 / MANAGER-CONTROLLED POSTING</span><h3>Create a return record</h3>
+      <label>Origin fulfilment event <select name="fulfilment_id" id="rc10Fulfilment" required><option value="">Authenticate and load events</option></select></label>
+      <label>Returnable item <select name="item_id" id="rc10Item" required><option value="">Choose origin first</option></select></label>
+      <div class="two"><label>Quantity <input type="number" name="quantity" min="1" step="1" required /></label><label>Accounting period <input name="period_key" type="month" required /></label></div>
+      <label>Reason / inspection evidence <textarea name="reason" minlength="8" maxlength="500" required placeholder="Customer returned unopened item; inspected and accepted"></textarea></label>
+      <button class="primary" type="submit">Submit audited return →</button>
+      <p class="hint">One idempotency key is retained for an identical retry. Any failed transaction leaves stock unchanged. Only manager role; IT group administrator cannot override.</p>
+    </form>
+    <div class="panel"><h3>Returnable quantity & evidence</h3><pre id="rc10Evidence" aria-live="polite">No fulfilment selected.</pre><p class="hint">Supplier return follows current weighted-average inventory cost. Price differences require an explicit purchase-price-variance account.</p></div>
+  </div>
+  <div class="panel"><div class="subheading"><h3>Returns register</h3><span class="hint">Confirmed server records for this entity only</span></div>
+   <div class="table-scroll"><table><thead><tr><th>Return ID</th><th>Type</th><th>Commercial XAF</th><th>Inventory XAF</th><th>Draft GL</th></tr></thead><tbody id="rc10ReturnsBody"><tr><td colspan="5">Not authenticated</td></tr></tbody></table></div>
+  </div>
+</section>
+
+<div class="panel" id="rc10VarianceMapping">
+  <span class="micro">FINANCE ADMINISTRATION · OPTIONAL FOR SUPPLIER COST VARIANCES</span><h3>Map purchase-price variance account</h3>
+  <form id="rc10VarianceForm" class="form-columns" style="align-items:end">
+    <label>Existing active GL account code <input name="account_code" required maxlength="32" placeholder="Your reviewed OHADA account code"/></label>
+    <div><button type="submit" class="secondary">Map to purchase_price_variance →</button></div>
+  </form>
+  <p class="hint">Finance role only. Choose the account with your Cameroon accountant; no chart code is assumed. Mapping is required if purchase price and stock AVCO diverge.</p>
+</div>
+<section class="section" id="ledger"><div class="section-kicker">03 / FINANCIAL INTEGRITY</div><h2>Double-entry, not dashboard math</h2><p class="lead">Integer XAF debits and credits are balanced before draft creation and checked again by PostgreSQL before posting. Financial localization remains unverified.</p><div class="form-columns"><form id="journalForm" class="panel"><h3>Draft GL journal</h3><label>Period <input name="period_key" type="month" required /></label><label>Memo <input name="memo" required minlength="4" placeholder="Demo invoice posting" /></label><div class="two"><label>Debit account code<input name="debit_account" value="411" required /></label><label>Credit account code<input name="credit_account" value="701" required /></label></div><label>Amount XAF <input type="number" name="amount_xaf" min="1" step="1" required /></label><div class="actions"><button class="primary" type="submit">Create balanced draft →</button></div></form><div class="panel"><div class="subheading"><h3>GL journal register</h3><button class="secondary" id="refreshJournals" type="button">Refresh</button></div><div class="table-scroll"><table><thead><tr><th>Period</th><th>Memo</th><th>Status</th><th>Evidence / Action</th></tr></thead><tbody id="journalsBody"><tr><td colspan="4">No authenticated data</td></tr></tbody></table></div><p class="hint">Only designated finance/executive roles can post; the journal creator must be different. IT administrator alone cannot post financial journals.</p></div></div></section>
+<section class="section" id="evidence"><div class="section-kicker">05 / AUDIT EVIDENCE</div><h2>Response inspector</h2><p class="lead">Inspect record transitions, actors, journal debit/credit lines, and audit events from PostgreSQL. Only server responses or explicit failures are displayed.</p><pre id="result" aria-live="polite">Run a health probe to inspect the API response.</pre><div class="actions"><button id="clearConsole" type="button" class="secondary">Clear inspector</button></div></section>
+<footer>BLUE LINE CAPITAL GROUP / RUST ERP CORE · 2026 <span>Checkpoint RC12 · not a production release</span></footer>
+
+<section class="section rc12-warehouse" id="rc12">
+ <div class="section-kicker">09 / CONTROLLED INVENTORY · RC12</div>
+ <h2>Move stock. Count stock.<br><em>Show the evidence.</em></h2>
+ <p class="lead">Transfer stock between <strong>two warehouses of the same legal entity</strong>, or submit a physical count for independent approval. The Rust API alone performs mutations. Transfers conserve inventory value; count differences create <strong>DRAFT</strong> debit-credit journals, not certified accounting entries.</p>
+ <div class="actions"><button id="rc12Refresh" type="button" class="secondary">Refresh inventory &amp; documents</button><button id="rc12Mappings" type="button" class="secondary">Check variance GL mappings</button></div>
+ <div class="form-columns">
+   <form class="panel" id="rc12TransferForm"><span class="micro">01 / OPERATOR SUBMISSION</span><h3>Inter-warehouse transfer</h3>
+     <label>Source warehouse<select class="rc12Warehouse" name="from_warehouse_id" required></select></label>
+     <label>Destination warehouse<select class="rc12Warehouse" name="to_warehouse_id" required></select></label>
+     <label>Inventory SKU<select class="rc12Item" name="item_id" required></select></label>
+     <label>Units to transfer<input type="number" name="quantity" min="1" max="1000000" step="1" required/></label>
+     <label>Transfer reason<textarea name="reason" minlength="8" maxlength="500" required placeholder="Replenish Yaoundé depot from Douala warehouse"></textarea></label>
+     <button type="submit" class="primary">Submit transfer for approval →</button>
+     <p class="hint">Maker: operator. Checker: different manager. Transfer does not debit cost of goods sold.</p>
+   </form>
+   <form class="panel" id="rc12CountForm"><span class="micro">02 / PHYSICAL COUNT SUBMISSION</span><h3>Cycle count adjustment</h3>
+     <label>Warehouse<select class="rc12Warehouse" name="warehouse_id" required></select></label>
+     <label>Inventory SKU<select class="rc12Item" name="item_id" required></select></label>
+     <div class="two"><label>Counted quantity<input name="counted_quantity" type="number" min="0" max="1000000000" step="1" required /></label>
+     <label>Accounting period<input name="period_key" type="month" required /></label></div>
+     <label>Opening unit cost (XAF) — only when current stock is zero<input type="number" name="opening_unit_cost_xaf" step="1" min="1" max="1000000000" placeholder="Optional otherwise" /></label>
+     <label>Count evidence / reason<textarea name="reason" minlength="8" maxlength="500" required placeholder="Count performed with signed stock count sheet"></textarea></label>
+     <button type="submit" class="primary">Submit physical count →</button>
+     <p class="hint">Approval rejects stale counts if the underlying quantity changed. Requires mapped inventory, gain and loss GL accounts.</p>
+   </form>
+ </div>
+ <div class="panel"><div class="subheading"><h3>Transfers awaiting manager approval</h3><span class="hint">Only current legal entity</span></div>
+  <div class="table-scroll"><table><thead><tr><th>Source → destination</th><th>Item</th><th>Quantity</th><th>Status</th><th>Review</th></tr></thead><tbody id="rc12Transfers"><tr><td colspan="5">Authenticate to load transfers</td></tr></tbody></table></div>
+ </div>
+ <div class="panel"><div class="subheading"><h3>Physical count register</h3><span class="hint">Never an automatic posted journal</span></div>
+  <div class="table-scroll"><table><thead><tr><th>Warehouse / item</th><th>Snapshot → count</th><th>Value</th><th>Status</th><th>Review</th></tr></thead><tbody id="rc12Counts"><tr><td colspan="5">Authenticate to load counts</td></tr></tbody></table></div>
+ </div>
+ <div class="form-columns"><div class="panel"><span class="micro">03 / MAPPED FINANCIAL ROLES</span><h3>Accountant-owned mapping</h3>
+   <form id="rc12AccountMap"><label>Posting role<select name="posting_role"><option value="inventory_adjustment_gain">inventory_adjustment_gain</option><option value="inventory_adjustment_loss">inventory_adjustment_loss</option></select></label>
+   <label>Existing active GL account code<input name="account_code" required maxlength="32" placeholder="Accountant-approved code" /></label><button type="submit" class="secondary">Map account (finance only) →</button></form>
+   <p class="hint">No SYSCOHADA account number is assumed. The accountant must verify local treatment and legal tax consequences.</p>
+ </div>
+ <div class="panel"><h3>Live API evidence</h3><pre id="rc12Evidence" aria-live="polite">Sign in and refresh. Mutations require a real HTTP success response.</pre></div></div>
+</section>
+</main></div></body></html>

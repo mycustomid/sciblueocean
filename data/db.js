@@ -2,12 +2,15 @@
 // Manages 9 ERP Modules, Persistent Transaction Records, State Machine Workflows, and Audit Trails
 
 import fs from 'fs';
+import crypto from 'node:crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_FILE = path.join(__dirname, 'erp-database.json');
+const DB_FILE = process.env.ERP_LOCAL_DB_PATH && !process.env.VERCEL
+  ? path.resolve(process.env.ERP_LOCAL_DB_PATH)
+  : path.join(__dirname, 'erp-database.json');
 
 export const INITIAL_MODULES = [
   {
@@ -377,27 +380,28 @@ export class DatabaseEngine {
     try {
       if (fs.existsSync(DB_FILE)) {
         const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-        this.records = data.records || INITIAL_RECORDS;
-      } else {
-        this.records = INITIAL_RECORDS;
-        this.save();
-      }
-    } catch (e) {
-      this.records = INITIAL_RECORDS;
+        this.records = Array.isArray(data.records) ? data.records : structuredClone(INITIAL_RECORDS);
+      } else this.records = structuredClone(INITIAL_RECORDS);
+    } catch (err) {
+      console.error('[RC5] Could not read local demo store; using example data:', err.message);
+      this.records = structuredClone(INITIAL_RECORDS);
     }
   }
 
   save() {
+    // Used only for explicitly enabled local-demo writes. Never on Vercel.
+    if (process.env.VERCEL || process.env.ERP_MODE !== 'local-demo' || process.env.ERP_ENABLE_LOCAL_WRITES !== '1') {
+      throw new Error('Persistent write disabled outside local demo');
+    }
+    const temp = `${DB_FILE}.${process.pid}.tmp`;
+    const data = JSON.stringify({version:'3.0.0-demo',lastUpdated:new Date().toISOString(),
+      totalRecords:this.records.length,records:this.records},null,2);
     try {
-      fs.writeFileSync(DB_FILE, JSON.stringify({
-        version: '3.0.0',
-        lastUpdated: new Date().toISOString(),
-        totalRecords: this.records.length,
-        records: this.records
-      }, null, 2), 'utf8');
-      return true;
-    } catch (e) {
-      return false;
+      fs.writeFileSync(temp, data, {encoding:'utf8',flag:'wx',mode:0o600});
+      fs.renameSync(temp,DB_FILE);
+    } catch(err) {
+      try {fs.rmSync(temp,{force:true});} catch {}
+      throw err;
     }
   }
 
@@ -432,53 +436,40 @@ export class DatabaseEngine {
   }
 
   addRecord(payload) {
-    const moduleId = payload.moduleId || 'holding';
-    const num = Math.floor(1000 + Math.random() * 9000);
-    const prefix = moduleId.toUpperCase().slice(0, 3);
-    const newRecord = {
-      id: payload.id || `${prefix}-${num}`,
-      moduleId,
-      date: payload.date || new Date().toISOString().slice(0, 10),
-      party: payload.party || 'Tier Non Spécifié',
-      desc: payload.desc || 'Nouvelle transaction enregistrée',
-      category: payload.category || 'Opération Courante',
-      amount: Number(payload.amount) || 0,
-      currency: payload.currency || 'FCFA',
-      step: Number(payload.step) || 1,
-      status: payload.status || 'pending',
-      metadata: payload.metadata || {},
-      auditLog: [
-        {
-          step: Number(payload.step) || 1,
-          role: 'service',
-          by: payload.createdByName || 'Opérateur Guichet',
-          at: new Date().toISOString().replace('T', ' ').slice(0, 16),
-          note: payload.note || 'Enregistrement initial dans le système ERP.'
-        }
-      ]
-    };
-    this.records.unshift(newRecord);
-    this.save();
-    return newRecord;
+    const moduleId = String(payload.moduleId || '');
+    if (!this.modules.some(m => m.id === moduleId)) throw new RangeError('Unknown ERP module');
+    const desc = String(payload.desc || '').trim();
+    const party = String(payload.party || '').trim();
+    const amount = Number(payload.amount);
+    if (desc.length < 3 || desc.length > 300 || party.length < 2 || party.length > 160) throw new RangeError('Invalid description or counterparty');
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 1e13) throw new RangeError('Invalid positive amount');
+    if (payload.step !== undefined && Number(payload.step) !== 1) throw new RangeError('New records must start at step 1');
+    const now = new Date().toISOString();
+    const prefix = moduleId.toUpperCase().slice(0,3);
+    const id = `${prefix}-${crypto.randomUUID().slice(0,12)}`;
+    const rec = {id,moduleId,date:now.slice(0,10),party,desc,
+      category:String(payload.category||'General').slice(0,80),amount,currency:'FCFA',
+      step:1,status:'pending',metadata:{},
+      auditLog:[{step:1,role:'service',by:'Authorized local demo operator',at:now,note:'Record created (local demo)'}]};
+    this.records.unshift(rec);
+    try {this.save();} catch(e) {this.records.shift();throw e;}
+    return rec;
   }
 
-  advanceWorkflow(recordId, targetStep, operatorName = 'Direction Générale', note = 'Validation de l’étape') {
+  advanceWorkflow(recordId, targetStep, operatorName = 'Authorized local demo operator', note = 'Approval') {
     const rec = this.records.find(r => r.id === recordId);
     if (!rec) return null;
-    rec.step = Math.min(4, Math.max(1, Number(targetStep)));
-    if (rec.step === 4) rec.status = 'approved';
-    else if (rec.step === 3) rec.status = 'audited';
-    else if (rec.step === 2) rec.status = 'in_progress';
-    else rec.status = 'pending';
-
-    rec.auditLog.push({
-      step: rec.step,
-      role: rec.step === 4 ? 'direction' : (rec.step === 3 ? 'finance' : 'housekeeping'),
-      by: operatorName,
-      at: new Date().toISOString().replace('T', ' ').slice(0, 16),
-      note
-    });
-    this.save();
+    if (!Number.isInteger(targetStep) || targetStep !== rec.step + 1 || targetStep > 4) {
+      throw new RangeError('Only sequential forward transitions are allowed');
+    }
+    if (rec.status==='approved') throw new RangeError('Approved record is immutable');
+    const previous={step:rec.step,status:rec.status};
+    const role = targetStep===2 ? 'operations' : targetStep===3 ? 'audit' : 'direction';
+    const log={step:targetStep,role,by:operatorName,at:new Date().toISOString(),note:String(note).slice(0,250)};
+    rec.step=targetStep;
+    rec.status=targetStep===4?'approved':targetStep===3?'audited':'in_progress';
+    rec.auditLog.push(log);
+    try {this.save();} catch(e) {rec.step=previous.step;rec.status=previous.status;rec.auditLog.pop();throw e;}
     return rec;
   }
 

@@ -1,0 +1,58 @@
+name: RC9 Partial Fulfilment Release Gate
+on:
+  pull_request:
+    paths:
+      - 'backend-rust/**'
+      - 'public/rc9/**'
+      - 'tests/rc9-contract.test.mjs'
+      - '.github/workflows/rc9-partial-check.yml'
+  push:
+    paths:
+      - 'backend-rust/**'
+      - 'public/rc9/**'
+      - 'tests/rc9-contract.test.mjs'
+      - '.github/workflows/rc9-partial-check.yml'
+permissions:
+  contents: read
+jobs:
+  js-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: node --check public/rc9/pilot.js
+      - run: node --test tests/*.test.mjs
+  rust-postgresql:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: rc9_ci_test_only
+          POSTGRES_DB: blueline_rc9
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d blueline_rc9"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://postgres:rc9_ci_test_only@localhost:5432/blueline_rc9
+    defaults:
+      run:
+        working-directory: backend-rust
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install toolchain
+        run: rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+      - name: Normalize formatting in disposable CI workspace
+        run: cargo +stable fmt --all
+      - name: Compile all targets
+        run: cargo +stable check --all-targets
+      - name: Run all Rust tests against PG16
+        run: cargo +stable test --all-targets
+      - name: Clippy
+        run: cargo +stable clippy --all-targets

@@ -1,0 +1,102 @@
+name: RC20 Fail-Closed Staging Gate
+on:
+  pull_request:
+    paths:
+      - 'backend-rust/**'
+      - 'public/rc19/**'
+      - 'public/rc20/**'
+      - 'tests/**'
+      - 'scripts/rc20-**'
+      - '.github/workflows/rc20-strict-staging-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          path: sciblueocean
+      - name: Checkout holding repo for real mirror validation
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: mycustomid/bluelinecapitale
+          path: bluelinecapitale
+          persist-credentials: false
+          token: ${{ secrets.BL_HOLDING_READ_TOKEN }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Node regression, DOM simulation, API contract
+        run: node --test tests/*.test.mjs
+        working-directory: sciblueocean
+      - name: JavaScript syntax
+        run: |
+          node --check public/rc19/studio.js
+          node --check public/rc20/release.js
+        working-directory: sciblueocean
+      - name: Static RC20 gate (never certifies production)
+        # RC20 cumulative patch also needs holding-site counterpart accessible.
+        run: python3 scripts/rc20-release-gate.py --mode static
+        working-directory: sciblueocean
+  rust-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: rc20_ci_disposable_only
+          POSTGRES_DB: rc20_disposable
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd 'pg_isready -U postgres -d rc20_disposable'
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      ERP_ENV: ci
+      ERP_AUTO_MIGRATE: 'false'
+      TEST_DATABASE_URL: postgres://postgres:rc20_ci_disposable_only@127.0.0.1:5432/rc20_disposable
+      DATABASE_URL: postgres://postgres:rc20_ci_disposable_only@127.0.0.1:5432/rc20_disposable
+      ERP_DISPOSABLE_TEST_DB: I_CONFIRM
+    defaults:
+      run:
+        working-directory: backend-rust
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Rust setup
+        run: rustup component add rustfmt
+      - name: Locked dependency graph required — fail if absent
+        run: test -f Cargo.lock
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Compile all targets
+        run: cargo check --locked --all-targets
+      - name: Live PG integration and unit tests
+        run: cargo test --locked --all-targets -- --nocapture
+  browser-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Browser runner
+        run: |
+          python3 -m pip install playwright==1.55.0
+          python3 -m playwright install --with-deps chromium
+      - name: Desktop and mobile screen and overflow checks
+        run: python3 scripts/rc20-browser-smoke.py
+  staging-gate:
+    runs-on: ubuntu-latest
+    needs: [static-contracts, rust-postgres, browser-visual]
+    steps:
+      - run: echo 'RC20 automated technical staging gates succeeded. Manual UAT, regulated business approvals, backup/restore, and production change-control are STILL REQUIRED.'

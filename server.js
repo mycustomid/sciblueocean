@@ -1,5 +1,5 @@
 // BLUE LINE CAPITAL GROUP — High-Performance Native Node.js Backend Server (ESM)
-// Serves Static Frontend (dist/) & Production REST API (/api/*) with Zero Dependencies
+// Serves static frontend (dist/) & demo REST API (/api/*) with Zero Dependencies
 
 import http from 'http';
 import fs from 'fs';
@@ -34,7 +34,7 @@ const MIME_TYPES = {
 function parseBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('data', chunk => { body += chunk.toString(); if (body.length > 16384) { reject(new Error('Payload too large')); req.destroy(); } });
     req.on('end', () => {
       try {
         resolve(body ? JSON.parse(body) : {});
@@ -50,7 +50,7 @@ function adaptVercelHandler(handler) {
   return async (req, res, parsedUrl) => {
     req.query = parsedUrl.query;
     if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-      req.body = await parseBody(req);
+      try { req.body = await parseBody(req); } catch { res.statusCode = 413; res.setHeader('Content-Type','application/json'); res.end(JSON.stringify({error:'Payload too large or invalid'})); return; }
     }
     res.status = code => {
       res.statusCode = code;
@@ -67,6 +67,8 @@ function adaptVercelHandler(handler) {
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
+  res.setHeader('X-Content-Type-Options','nosniff');
+  res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
 
   // 1. API Endpoints
   if (pathname === '/api/health' || pathname === '/api/health/') {
@@ -82,11 +84,21 @@ const server = http.createServer(async (req, res) => {
     return adaptVercelHandler(workflowHandler)(req, res, parsedUrl);
   }
 
-  // 2. Static File Serving (dist/ or public/)
-  let targetFile = path.join(DIST_DIR, pathname === '/' ? 'index.html' : pathname);
-  if (!fs.existsSync(targetFile)) {
-    targetFile = path.join(PUBLIC_DIR, pathname);
-  }
+  // Unknown API routes never fall through to HTML.
+  if (pathname.startsWith('/api/')) {res.writeHead(404,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Unknown API route'}));return;}
+  // 2. Static assets: explicit containment against path traversal.
+  let relative;
+  try { relative = decodeURIComponent(pathname === '/' ? '/index.html' : pathname); }
+  catch {res.writeHead(400);res.end('Invalid URL');return;}
+  if (relative.includes('\0') || relative.split(/[\\/]/).includes('..')) {res.writeHead(403);res.end('Forbidden');return;}
+  relative = relative.replace(/^\/+/, '');
+  const candidate = root => {
+    const abs=path.resolve(root, relative);
+    return abs.startsWith(root + path.sep) ? abs : null;
+  };
+  let targetFile = candidate(DIST_DIR);
+  if (!targetFile || !fs.existsSync(targetFile)) targetFile = candidate(PUBLIC_DIR);
+  if (!targetFile) {res.writeHead(403);res.end('Forbidden');return;}
   if (fs.existsSync(targetFile) && fs.statSync(targetFile).isDirectory()) {
     targetFile = path.join(targetFile, 'index.html');
   }
@@ -98,11 +110,14 @@ const server = http.createServer(async (req, res) => {
     return fs.createReadStream(targetFile).pipe(res);
   }
 
-  // Fallback to SPA index.html
-  const fallback = path.join(DIST_DIR, 'index.html');
-  if (fs.existsSync(fallback)) {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    return fs.createReadStream(fallback).pipe(res);
+  // Fallback to SPA index.html only for client-side routes (no file extension)
+  const reqExt = path.extname(relative);
+  if (!reqExt || reqExt === '.html') {
+    const fallback = path.join(DIST_DIR, 'index.html');
+    if (fs.existsSync(fallback)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return fs.createReadStream(fallback).pipe(res);
+    }
   }
 
   res.writeHead(404, { 'Content-Type': 'application/json' });

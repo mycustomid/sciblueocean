@@ -1,0 +1,67 @@
+name: RC12 Rust PostgreSQL Warehouse Gate
+on:
+  pull_request:
+    paths:
+      - 'backend-rust/**'
+      - 'public/rc12/**'
+      - 'tests/**'
+      - '.github/workflows/rc12-warehouse-gate.yml'
+  push:
+    paths:
+      - 'backend-rust/**'
+      - 'public/rc12/**'
+      - 'tests/**'
+      - '.github/workflows/rc12-warehouse-gate.yml'
+permissions:
+  contents: read
+jobs:
+  rust-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: disposable_rc12_only
+          POSTGRES_DB: rc12_warehouse_tests
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd 'pg_isready -U postgres -d rc12_warehouse_tests'
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgres://postgres:disposable_rc12_only@127.0.0.1:5432/rc12_warehouse_tests
+      TEST_DATABASE_URL: postgres://postgres:disposable_rc12_only@127.0.0.1:5432/rc12_warehouse_tests
+      ERP_ENV: ci
+      ERP_AUTO_MIGRATE: 'false'
+    defaults:
+      run:
+        working-directory: backend-rust
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Rust toolchain
+        run: rustc --version && cargo --version
+      - name: Compile Rust all targets
+        run: cargo check --all-targets
+      - name: All real Rust and PostgreSQL tests
+        run: cargo test --all-targets -- --nocapture
+      - name: Check migration count
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          versions=[p.name[:4] for p in sorted(Path('migrations').glob('*.sql'))]
+          assert versions==[f'{i:04d}' for i in range(1,13)],versions
+          print('Ten migrations tracked')
+          PY
+  js-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: node --test tests/*.test.mjs
+      - run: node --check public/rc12/pilot.js
