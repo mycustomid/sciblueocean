@@ -1,0 +1,1 @@
+SVG icon set for Blue Line role workspaces. Hand-authored line icons inspired by open stroke-based icon conventions. icons.svg is the symbol sprite; icon-*.svg are standalone assets. Decorative brand and background SVGs are original for this patch. Existing company logo in repository remains unmodified.
