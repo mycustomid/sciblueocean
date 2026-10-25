@@ -1,6 +1,6 @@
 //! RC17 PG integration: membership role changes invalidate bearer sessions.
 use blue_line_erp_api::{AppState,auth,security,policy};
-use axum::{extract::{State,Path},http::HeaderMap};use sqlx::PgPool;use uuid::Uuid;
+use axum::{extract::{State,Path},http::HeaderMap,Json};use sqlx::PgPool;use uuid::Uuid;
 async fn actor(db:&PgPool,entity:Uuid,role:&str)->(Uuid,HeaderMap){
  let id:Uuid=sqlx::query_scalar("INSERT INTO app_users(email,display_name,password_hash) VALUES($1,'RC17 Identity','local-qa') RETURNING id")
  .bind(format!("rc17-{}@test.invalid",Uuid::new_v4())).fetch_one(db).await.unwrap();
