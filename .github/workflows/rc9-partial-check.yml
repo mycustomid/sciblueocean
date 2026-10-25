@@ -33,7 +33,7 @@ jobs:
           POSTGRES_DB: blueline_rc9
         ports: [5432:5432]
         options: >-
-          --health-cmd "pg_isready -U postgres -d blueline_rc9"
+          --health-cmd=pg_isready
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
