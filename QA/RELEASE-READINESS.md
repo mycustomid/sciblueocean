@@ -1,13 +1,15 @@
-# RELEASE READINESS — 2026-10-26
+# Release readiness v2 — 26 Oct 2026
 
-**Disposition: DEVELOPMENT CHECKPOINT; NOT PRODUCTION READY.**
+**Overall status: DEV/STAGING PATCH; NOT PRODUCTION READY**
 
-PASS: 17 public guest route templates, 14 Studio URL templates (login + 13 after-login), 2 custom style systems, direct SQLite demo backend, role permissions enforced server-side, CSRF token, session cookie, overlapping confirmed bookings rejected, booking lifecycle, tasks, maintenance and charge flows, 15 Python API integration tests, JS syntax, 31 route HTML link audit.
+PASS: source HTML route audit, no missing internal links, CSS parser, JS syntax, structural coverage of main CSS selectors, original logo and 9 local images retrieved from HEAD, payment workflow/unit tests, role and CSRF protections for local demo payment state machine.
 
-NOT RUN: npm dependency install/real Astro build (container network inaccessible). Real production site deploy/Vercel. Full EN translations and content QA.
+NOT RUN: full Astro build from current GitHub checkout, actual Chromium/Playwright visual tests (restricted environment gives `ERR_BLOCKED_BY_ADMINISTRATOR`), Vercel deploy, real cloud DNS, real business analytics, notifications and private customer data flow.
 
-BLOCKED: Playwright browser navigation to loopback and file URLs returned `ERR_BLOCKED_BY_ADMINISTRATOR` in this sandbox, therefore no legitimate desktop/mobile layout or console validation; scripts and logs preserved. No claim of visual perfection.
+NOT CONNECTED: Flutterwave payment merchant/KYC, MTN MoMo / Orange PSP sandbox/live, production payment webhook endpoint, Frappe/Kamra hotel operations, authentic guest identity and verified UI translations.
 
-NOT VERIFIED: remote official property media URLs, company permission from actual Frappe/Kamra site, production database, payment gateway, email deliverability, tax/law compliance, regulatory statement, multi-property PMS and actual user accounts.
+KNOWN RISK: Guest EN language is still a partial preview. Original source media usage rights must be reviewed by website owner, though originals were pulled from their own repo. The Python demo server binds loopback only and must not be deployed unchanged.
 
-KNOWN GAPS: static Vercel cannot run `/api/demo/*`; screenshots are not available; user sign-in/up are honest future integrations; navigation localization EN is limited, editorial FR master; multiple business lines are nonconnected showcases and deliberately disabled; demo role password is fixed and safe only when bound to `127.0.0.1`. Production security review required.
+BLOCKERS FOR RELEASE: actual visual QA in unrestricted Chromium at 1440x900 and 390x844; payment sandbox & webhook validation; production roles/session model and confidentiality; live guest booking availability authority; business/legal approval of reservation/cancellation/deposit/tax rules.
+
+INSTALLER MOCK: dry-run/apply successful with simulated Git checkout and original media fixture files. Current real repository not modified; no GitHub push or Vercel deploy.

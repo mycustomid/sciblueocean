@@ -1,16 +1,18 @@
-# Media and license register
+# Media, origin, and license register — revised 2026-10-26
 
-| Resource | Provenance | Usage | State |
+All nine WebP property files and original SCI logo were retrieved from the user's `mycustomid/sciblueocean` GitHub repository at HEAD `c0c3eda9be41dc574e9b09e51654436d50a88031`. Files are available locally under `patch/public/experience/assets/` and installed only if byte-identical to existing repo originals. No website hotlink is required for image delivery.
+
+| Asset | Source | Usage | Status |
 |---|---|---|---|
-| `experience/assets/original-sci-logo.png` | `mycustomid/sciblueocean` repo `public/brand/logo-main.png` at `587a...` | Existing SCI identity review | Included (original ownership rights to verify) |
-| `/favicon.svg` and CSS B. monogram | Original design authored in this patch | Illustration/brand prototype | Included |
-| `https://sciblueocean.com/miague-hero.webp` | Existing source-domain URL observed as `miague-hero.webp` in client website | Miague photo | Remote reference only, existence and permission NOT VERIFIED |
-| `https://sciblueocean.com/miague-side.webp` | Existing source-domain URL name observed on client website | Supporting media | Remote, NOT VERIFIED |
-| `https://sciblueocean.com/parking.webp` | Existing source-domain URL name observed on client website | Parking | Remote, NOT VERIFIED |
-| `https://sciblueocean.com/ebene.webp` | Existing source-domain URL name observed on client website | Ebène architectural concept | Remote, NOT VERIFIED |
-| `https://sciblueocean.com/amara.webp` | Existing source-domain URL name observed on client website | Amara architectural concept | Remote, NOT VERIFIED |
-| DM Sans / Manrope via Google Fonts | Public Google Fonts API | UI fonts | External runtime dependency, fallback included; check OFL license for self-host |
-| CSS/JS/HTML/Python authored code | New source for this task | Custom site/demo logic | Included; no code from Airbnb copied |
-| Optional `blue_line_extensions` source | Earlier user project artifact in this conversation | Frappe integration reference | Included, NOT installed |
+| `original-sci-logo.png` | Current client GitHub `public/experience/assets/` | Authentic SCI Blue Ocean identity in header, footer, Studio | Local, retrieved; rights to be confirmed by owner |
+| `miague-hero.webp`, `miague-side.webp`, `miague-detail.webp` | Same GitHub HEAD | Actual Résidence Miague photography | Local; user-owned repository source |
+| `parking.webp`, `parking-2.webp` | Same GitHub HEAD | On-site parking/property support | Local |
+| `ebene.webp`, `ebene-roof.webp` | Same GitHub HEAD | Ebène *architectural visualisation* only | Local, must label development status |
+| `amara.webp`, `amara-roof.webp` | Same GitHub HEAD | Amara *architectural visualisation* only | Local, must label development status |
+| `favicon.svg` | Same GitHub HEAD | Locally linked favicon | Local |
+| `icons.svg` | New hand-authored simple SVG symbols | Navigation, amenities, language, payments | Custom code authored for this project |
+| `site.css`, `refinement-v2.css`, `site.js`, Python code | Patch-owned code | Website and demo logic | Custom code |
+| DM Sans / Manrope via Google Fonts | fonts.googleapis.com | Type system | External font delivery, fallback available; review font licensing for bundling/self-host |
+| Optional Frappe integration sample | Prior user-requested artifact | Future deployment boundary | Not installed, not bundled upstream vendor engines |
 
-No unrelated stock photography and no fake guest reviews are bundled. Before deployment replace unverified URLs with authorized original files. Do not mistake architectural visualizations for finished building photography.
+Social media handles were not verifiable during public search; do not invent links. Client owner must confirm marketing accounts and legal permissions for any reused images before production.

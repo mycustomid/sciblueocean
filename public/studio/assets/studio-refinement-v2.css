@@ -1,0 +1,9 @@
+/* Original client identity and functional icon map for studio only */
+.studio-brand .monogram{display:flex;align-items:center;justify-content:center;width:76px;height:48px;border-radius:9px;background:#fff;padding:5px;border:1px solid #dfe8e5;overflow:hidden}
+.studio-brand .monogram img{display:block;width:100%;height:100%;object-fit:contain}
+.studio-nav .nav-icon{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none}
+.studio-nav .nav-icon .ui-icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.studio-nav a{min-height:45px}
+[data-table="payments"] td{white-space:normal}
+[data-table="payments"] td:first-child{font-family:monospace;font-size:12px}
+@media(max-width:760px){.studio-brand .monogram{width:62px;height:42px}.studio-nav a{min-height:47px}}

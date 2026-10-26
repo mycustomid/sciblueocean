@@ -1427,15 +1427,3 @@ img {
         animation:none!important
     }
 }
-
-.brand-img {
-    height: 42px;
-    width: auto;
-    object-fit: contain;
-    display: block;
-}
-.brand-mark-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}

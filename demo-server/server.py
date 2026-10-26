@@ -30,9 +30,9 @@ ROLES = {
 }
 VIEWS = {
  'reception': {'dashboard','bookings','calendar','arrivals','guests','housekeeping','maintenance'},
- 'manager': {'dashboard','bookings','calendar','arrivals','guests','housekeeping','folios','maintenance','reports','portfolio'},
+ 'manager': {'dashboard','bookings','calendar','arrivals','guests','housekeeping','folios','payments','maintenance','reports','portfolio'},
  'housekeeping': {'dashboard','housekeeping'},
- 'finance': {'dashboard','folios','reports','bookings'},
+ 'finance': {'dashboard','folios','payments','reports','bookings'},
  'maintenance': {'dashboard','maintenance'},
  'owner': {'dashboard','portfolio','reports','companies','people','settings'}
 }
@@ -42,7 +42,8 @@ ACTION_ROLES = {
  'booking:checkin': {'reception','manager'}, 'booking:checkout': {'reception','manager'},
  'task:create': {'housekeeping','manager'}, 'task:update': {'housekeeping','manager'},
  'maintenance:create': {'maintenance','manager','reception'}, 'maintenance:update': {'maintenance','manager'},
- 'folio:charge': {'finance','manager'}
+ 'folio:charge': {'finance','manager'},
+ 'payment:test-settle': {'finance','manager'}
 }
 SESSIONS = {} # memory-only, expiry on each read; invalidated on restart
 SESS_LOCK = threading.RLock()
@@ -90,6 +91,12 @@ def init_db(path):
    CREATE TABLE IF NOT EXISTS charges (id INTEGER PRIMARY KEY AUTOINCREMENT,
      booking_id INTEGER NOT NULL REFERENCES bookings(id), label TEXT NOT NULL,
      amount_xaf INTEGER NOT NULL CHECK(amount_xaf>0), created_at TEXT NOT NULL);
+   CREATE TABLE IF NOT EXISTS payment_intents (id INTEGER PRIMARY KEY AUTOINCREMENT,
+     booking_id INTEGER NOT NULL UNIQUE REFERENCES bookings(id),
+     provider TEXT NOT NULL DEFAULT 'DEMO_ONLY', external_reference TEXT NOT NULL UNIQUE,
+     amount_xaf INTEGER NOT NULL CHECK(amount_xaf>0), currency TEXT NOT NULL DEFAULT 'XAF',
+     state TEXT NOT NULL DEFAULT 'awaiting_payment',
+     provider_transaction_id TEXT DEFAULT '', updated_at TEXT NOT NULL);
    CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY AUTOINCREMENT,
      actor TEXT NOT NULL, action TEXT NOT NULL, entity TEXT NOT NULL,
      reference TEXT NOT NULL, created_at TEXT NOT NULL);
@@ -144,6 +151,7 @@ def snapshot(cx,role):
  tasks=rows(cx,"SELECT * FROM tasks WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
  m=rows(cx,"SELECT * FROM maintenance WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
  charges=rows(cx,"SELECT c.*,b.reference,b.status booking_status FROM charges c JOIN bookings b ON b.id=c.booking_id WHERE b.property='MIAGUE' ORDER BY c.id DESC")
+ payments=rows(cx,"SELECT p.external_reference,p.amount_xaf,p.currency,p.state,p.provider_transaction_id,b.reference booking_reference FROM payment_intents p JOIN bookings b ON b.id=p.booking_id WHERE b.property='MIAGUE' ORDER BY p.id DESC") if role in ('manager','finance') else []
  today=iso_today()
  metrics={
  'arrivals':sum(x['status']=='confirmed' and x['checkin']==today for x in bookings),
@@ -153,7 +161,9 @@ def snapshot(cx,role):
  'tasks_progress':sum(x['status']=='in_progress' for x in tasks),
  'tasks_done':sum(x['status']=='done' for x in tasks),
  'folios_open':sum(x['status'] in ('checked_in','confirmed') for x in bookings),
- 'billed':sum(x['amount_xaf'] for x in charges), 'settled':0, 'revenue':0,
+ 'billed':sum(x['amount_xaf'] for x in charges),
+ 'settled':sum(x['amount_xaf'] for x in rows(cx, "SELECT amount_xaf FROM payment_intents WHERE state='paid'")),
+ 'revenue':0,
  'total_requests':len(bookings),'confirmed':sum(x['status'] in ('confirmed','checked_in','checked_out') for x in bookings),
  'cancelled':sum(x['status']=='cancelled' for x in bookings)
  }
@@ -165,7 +175,8 @@ def snapshot(cx,role):
   tasks=[];m=[]
   bookings=[{k:v for k,v in b.items() if k!='phone'} for b in bookings]
  if role=='reception':charges=[]
- return dict(bookings=bookings,tasks=tasks,maintenance=m,charges=charges,metrics=metrics,
+ return dict(bookings=bookings,tasks=tasks,maintenance=m,charges=charges,payments=payments,metrics=metrics,
+  simulated_settlement_enabled=os.environ.get('BLUE_OCEAN_ENABLE_SIMULATED_SETTLEMENT')=='YES',
   demo=True,payment='DISABLED',upstream_pms='NOT_CONNECTED',currency='XAF')
 
 class Handler(SimpleHTTPRequestHandler):
@@ -217,7 +228,10 @@ class Handler(SimpleHTTPRequestHandler):
   if p=='/api/demo/public/lookup':
    q=parse_qs(urlsplit(self.path).query);ref=clean(q.get('reference',[''])[0],24);email=clean(q.get('email',[''])[0],160).lower()
    with connection(self.server.db_path) as cx:
-    item=one(cx,'SELECT reference,checkin,checkout,guests,estimate_xaf,status FROM bookings WHERE reference=? AND email=?',(ref,email))
+    item=one(cx,'SELECT id,reference,checkin,checkout,guests,estimate_xaf,status FROM bookings WHERE reference=? AND email=?',(ref,email))
+    if item:
+     intent=one(cx, 'SELECT state,amount_xaf,currency,external_reference FROM payment_intents WHERE booking_id=?',(item['id'],))
+     del item['id'];item['payment']=intent or {'state':'not_initiated'}
    return self.send_json(200,{'booking':item}) if item else self.send_json(404,{'error':'No matching demo request'})
   if p=='/api/demo/me':
    s=self.guard()
@@ -246,6 +260,23 @@ class Handler(SimpleHTTPRequestHandler):
    token=secrets.token_hex(32);csrf=secrets.token_hex(16)
    with SESS_LOCK:SESSIONS[token]={'role':ROLES[name][0],'property':ROLES[name][1],'csrf':csrf,'expires':datetime.now(timezone.utc)+timedelta(hours=2)}
    return self.send_json(200,{'ok':True,'role':name,'csrf':csrf}, {'Set-Cookie':f'bo_demo_session={token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=7200'})
+  if p=='/api/demo/public/payment-intent':
+   # Reference + email act as a demo lookup capability; HTTPS authenticated guest required in production.
+   ref=clean(body.get('reference'),24);email=clean(body.get('email'),160).lower()
+   if not ref or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',email):return self.send_json(400,{'error':'Reference and email required'})
+   with connection(self.server.db_path) as cx:
+    cx.execute('BEGIN IMMEDIATE')
+    booking=one(cx,"SELECT * FROM bookings WHERE reference=? AND email=? AND property='MIAGUE'",(ref,email))
+    if not booking:return self.send_json(404,{'error':'Booking not found'})
+    if booking['status'] not in ('confirmed','checked_in'):
+     return self.send_json(409,{'error':'Staff must confirm booking before payment'})
+    intent=one(cx,'SELECT * FROM payment_intents WHERE booking_id=?',(booking['id'],))
+    if not intent:
+     pid='BO-PAY-'+secrets.token_hex(6).upper()
+     cx.execute('INSERT INTO payment_intents(booking_id,external_reference,amount_xaf,updated_at) VALUES (?,?,?,?)',(booking['id'],pid,booking['estimate_xaf'],utcnow()))
+     cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES (?,?,?,?,?)',('guest','payment:intent','booking',ref,utcnow()))
+     intent=one(cx,'SELECT * FROM payment_intents WHERE booking_id=?',(booking['id'],))
+   return self.send_json(200,{'mode':'DEMO_ONLY','intent':{'reference':intent['external_reference'],'state':intent['state'],'currency':'XAF','amount_xaf':intent['amount_xaf']},'checkout_url':None,'message':'Awaiting payment. Provider checkout is not connected. Demo finance operator may test settlement.'})
   if p=='/api/demo/public/request':
    try:
     with connection(self.server.db_path) as cx:
@@ -260,6 +291,7 @@ class Handler(SimpleHTTPRequestHandler):
   elif p=='/api/demo/maintenance/create':action='maintenance:create'
   elif p=='/api/demo/maintenance/update':action='maintenance:update'
   elif p=='/api/demo/folio/charge':action='folio:charge'
+  elif p=='/api/demo/payment/test-settle':action='payment:test-settle'
   else:return self.send_json(404,{'error':'Unknown API endpoint'})
   s=self.guard(action)
   if not s:return
@@ -292,6 +324,19 @@ class Handler(SimpleHTTPRequestHandler):
      cur=cx.execute("UPDATE maintenance SET status=? WHERE id=? AND property='MIAGUE'",(state,mid))
      if not cur.rowcount:raise LookupError('Maintenance not found')
      out=one(cx,'SELECT * FROM maintenance WHERE id=?',(mid,))
+    elif p=='/api/demo/payment/test-settle':
+     if os.environ.get('BLUE_OCEAN_ENABLE_SIMULATED_SETTLEMENT') != 'YES':raise ValueError('Test settlement disabled. Set BLUE_OCEAN_ENABLE_SIMULATED_SETTLEMENT=YES for isolated local demo.')
+     ref=clean(body.get('reference'),40);transaction_id=clean(body.get('provider_transaction_id'),80)
+     if not ref or not transaction_id:raise ValueError('Intent reference and simulated provider transaction id required')
+     intent=one(cx,'SELECT * FROM payment_intents WHERE external_reference=?',(ref,))
+     if not intent:raise LookupError('Payment intent not found')
+     if intent['state']=='paid':
+      if intent['provider_transaction_id']!=transaction_id:raise ValueError('Transaction mismatch on already settled payment')
+      out=intent
+     else:
+      if intent['state']!='awaiting_payment':raise ValueError('Intent not eligible')
+      cx.execute("UPDATE payment_intents SET state='paid',provider_transaction_id=?,updated_at=? WHERE id=?",(transaction_id,utcnow(),intent['id']))
+      out=one(cx,'SELECT * FROM payment_intents WHERE id=?',(intent['id'],))
     else:
      bid=int(body.get('booking_id'));label=clean(body.get('label'),110);amount=int(body.get('amount_xaf'))
      if amount<=0 or amount>5000000 or not label:raise ValueError('Valid positive amount and label required')

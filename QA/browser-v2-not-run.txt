@@ -1,0 +1,7 @@
+2026-10-26: Attempted chromium navigation with playwright.chromium.launch executable_path=/usr/bin/chromium.
+Desktop 1440 x 900 at http://127.0.0.1:8765/experience/stays/miague/
+=> Page.goto net::ERR_BLOCKED_BY_ADMINISTRATOR.
+Attempted file:///mnt/data/work_bluefix/blue/patch/public/experience/index.html
+=> Page.goto net::ERR_BLOCKED_BY_ADMINISTRATOR.
+Consequence: screenshot/visual layout, focus, console, touch and pixel collision tests NOT RUN.
+Static source/CSS/JS parsing and real HTTP GET to the demo server do not replace browser tests.
