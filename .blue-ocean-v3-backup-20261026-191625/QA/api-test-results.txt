@@ -1,0 +1,20 @@
+test_01_public_health (test_demo_api.DemoAPI.test_01_public_health) ... ok
+test_02_invalid_login_and_bad_password (test_demo_api.DemoAPI.test_02_invalid_login_and_bad_password) ... ok
+test_03_no_cookie_snapshot_denied (test_demo_api.DemoAPI.test_03_no_cookie_snapshot_denied) ... ok
+test_04_role_scoping_finance (test_demo_api.DemoAPI.test_04_role_scoping_finance) ... ok
+test_05_role_mutation_denied (test_demo_api.DemoAPI.test_05_role_mutation_denied) ... ok
+test_06_csrf_enforced (test_demo_api.DemoAPI.test_06_csrf_enforced) ... ok
+test_07_public_booking_success_and_lookup (test_demo_api.DemoAPI.test_07_public_booking_success_and_lookup) ... ok
+test_08_invalid_dates_and_unavailable_property (test_demo_api.DemoAPI.test_08_invalid_dates_and_unavailable_property) ... ok
+test_09_full_lifecycle_and_overlap (test_demo_api.DemoAPI.test_09_full_lifecycle_and_overlap) ... ok
+test_10_housekeeping_allowed_but_no_charge (test_demo_api.DemoAPI.test_10_housekeeping_allowed_but_no_charge) ... ok
+test_11_owner_read_only (test_demo_api.DemoAPI.test_11_owner_read_only) ... ok
+test_12_logout_revokes_session (test_demo_api.DemoAPI.test_12_logout_revokes_session) ... ok
+test_13_custom_payment_route_missing (test_demo_api.DemoAPI.test_13_custom_payment_route_missing) ... ok
+test_14_unconnected_engine_reported (test_demo_api.DemoAPI.test_14_unconnected_engine_reported) ... ok
+test_15_browser_assets_and_routes_exist (test_demo_api.DemoAPI.test_15_browser_assets_and_routes_exist) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.699s
+
+OK

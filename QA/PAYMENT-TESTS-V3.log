@@ -1,0 +1,11 @@
+test_checkout_payload (test_hosted_v3.HostedV3Test.test_checkout_payload) ... ok
+test_reject_callback_http (test_hosted_v3.HostedV3Test.test_reject_callback_http) ... ok
+test_reject_untrusted_url (test_hosted_v3.HostedV3Test.test_reject_untrusted_url) ... ok
+test_verify_all_fields (test_hosted_v3.HostedV3Test.test_verify_all_fields) ... ok
+test_webhook_and_idempotency (test_hosted_v3.HostedV3Test.test_webhook_and_idempotency) ... ok
+test_full_payment_state_machine (test_payment_workflow.PaymentFlow.test_full_payment_state_machine) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.887s
+
+OK

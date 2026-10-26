@@ -1,0 +1,4 @@
+BILINGUAL AUDIT: {"routes": 36, "images": 150, "internal_links": 1106, "matched_locales": 18}
+ICON SYMBOLS: 19
+ISSUES: 0
+PASS: every public FR/EN route, internal link, image, icon, and locale smoke probe

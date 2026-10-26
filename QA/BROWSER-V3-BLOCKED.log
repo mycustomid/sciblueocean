@@ -1,0 +1,4 @@
+2026-10-26: attempted Playwright Chromium against local http://127.0.0.1:8768/experience/en/.
+Chromium launches, then page.goto returns `net::ERR_BLOCKED_BY_ADMINISTRATOR`.
+No screenshots were produced. Browser visual responsiveness, keyboard and console assertions NOT RUN/BLOCKED.
+HTTP GET of FR and EN routes separately returns 200; this DOES NOT substitute for visual QA.

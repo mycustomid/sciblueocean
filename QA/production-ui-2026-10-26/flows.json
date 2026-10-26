@@ -1,0 +1,268 @@
+{
+  "mobileMenu": {
+    "expanded": "true",
+    "hidden": false,
+    "links": [
+      "Les résidences",
+      "Longs séjours",
+      "Bonapriso",
+      "Notre histoire",
+      "Mes réservations",
+      "Trouver un séjour"
+    ]
+  },
+  "language": {
+    "lang": "en",
+    "current": "EN",
+    "h1": "The feeling\nof being at home.",
+    "nav": [
+      "Residences",
+      "Monthly living",
+      "Bonapriso",
+      "Our story",
+      "My bookings",
+      "Find a stay"
+    ]
+  },
+  "languagePayment": {
+    "lang": "en",
+    "h1": "Votre séjour.\nVotre tranquillité.",
+    "current": "EN"
+  },
+  "paymentEmpty": {
+    "valid": false,
+    "active": "reference",
+    "response": ""
+  },
+  "searchOverflow": [
+    {
+      "el": "div.language-popover",
+      "right": 426.40625,
+      "width": 248
+    },
+    {
+      "el": "aside.search-controls",
+      "right": 421.34375,
+      "width": 399.34375
+    },
+    {
+      "el": "div.search-results",
+      "right": 421.34375,
+      "width": 399.34375
+    },
+    {
+      "el": "div.results-heading",
+      "right": 421.34375,
+      "width": 399.34375
+    },
+    {
+      "el": "div.search-result",
+      "right": 421.34375,
+      "width": 399.34375
+    },
+    {
+      "el": "div.search-result",
+      "right": 421.34375,
+      "width": 399.34375
+    },
+    {
+      "el": "div.search-result",
+      "right": 421.34375,
+      "width": 399.34375
+    },
+    {
+      "el": "button.language-choice",
+      "right": 414.40625,
+      "width": 224
+    },
+    {
+      "el": "button.language-choice",
+      "right": 414.40625,
+      "width": 224
+    },
+    {
+      "el": "div",
+      "right": 406.34375,
+      "width": 226.34375
+    },
+    {
+      "el": "span.eyebrow",
+      "right": 406.34375,
+      "width": 226.34375
+    },
+    {
+      "el": "h3",
+      "right": 406.34375,
+      "width": 226.34375
+    }
+  ],
+  "searchInvalidDates": {
+    "url": "https://sciblueocean.vercel.app/experience/search/",
+    "text": " Douala.\n\nÀ partir de 400,000 FCFA / mois\nManifester mon intérêt ↗\nUNDER DEVELOPMENT\nRésidence Amara\n\nDes intérieurs envisagés pour ralentir, respirer et habiter Douala autrement.\n\nÀ partir de 450,000 FCFA / mois\nManifester mon intérêt ↗\nUne autre façon\nd'habiter Douala.\n\nDes séjours pensés avec attention.\nLa liberté de se sentir chez soi.\n\nEXPLORE\nResidences\nMonthly stays\nThe neighbourhood\nOur story\nYOUR STAY\nAvailability\nMy bookings\nFrequently asked questions\nTerms and privacy\nPaiement & statut\nCONTACT\nBonapriso, Douala\nCameroon\nÉcrire à l'équipe ↗\nVoir le quartier ↗\n© 2026 SCIE Blue Ocean · Blue Line Capital Group\nDéveloppé pour de vrais séjours. Conçu avec soin.\nStaff demo\n·\nPrivacy\nRésidence Miague\nFrom 40,000 FCFA / night\nChoose dates",
+    "alerts": [
+      ""
+    ]
+  },
+  "searchValid": {
+    "results": [
+      "Mode visuel uniquement : connexion locale absente, aucune disponibilité garantie.\n\nBONAPRISO · DOUALA\nRésidence Miague\n\nRéservation de studio privé.\n\n2 nuits · estimation 80 000 FC",
+      "BONAPRISO · DOUALA\nRésidence Miague\n\nRéservation de studio privé.\n\n2 nuits · estimation 80 000 FCFA\n\nContinuer ma demande ↗",
+      "BONAPRISO · DOUALA\nRésidence Ebène\n\nEn construction · préinscriptions.\n\nDès 400 000 FCFA/mois · non disponible immédiatement\n\nEn savoir plus ↗",
+      "BONAPRISO · DOUALA\nRésidence Amara\n\nEn construction · préinscriptions.\n\nDès 450 000 FCFA/mois · non disponible immédiatement\n\nEn savoir plus ↗",
+      "UNDER DEVELOPMENT\nRésidence Ebène\n\nUn nouvel art de vivre urbain avec une perspective sur les toits de Douala.\n\nÀ partir de 400,000 FCFA / mois\nManifester mon intérêt ↗",
+      "UNDER DEVELOPMENT\nRésidence Amara\n\nDes intérieurs envisagés pour ralentir, respirer et habiter Douala autrement.\n\nÀ partir de 450,000 FCFA / mois\nManifester mon intérêt ↗"
+    ],
+    "notes": [
+      "Les disponibilités live nécessitent le PMS. Cette recherche présente les options connues et peut créer une demande dans le serveur de démonstration local.",
+      "Mode visuel uniquement : connexion locale absente, aucune disponibilité garantie."
+    ]
+  },
+  "collectionHero": [
+    {
+      "selector": ".collection-hero",
+      "rect": {
+        "x": 0,
+        "y": 116,
+        "w": 1440,
+        "h": 825.5
+      },
+      "display": "block",
+      "opacity": "1",
+      "visibility": "visible",
+      "src": null
+    },
+    {
+      "selector": ".collection-hero-image",
+      "rect": {
+        "x": 105,
+        "y": 476.5,
+        "w": 1230,
+        "h": 410
+      },
+      "display": "block",
+      "opacity": "1",
+      "visibility": "visible",
+      "src": null
+    },
+    {
+      "selector": ".collection-hero-image img",
+      "rect": {
+        "x": 141,
+        "y": 476.5,
+        "w": 1158,
+        "h": 0
+      },
+      "display": "block",
+      "opacity": "1",
+      "visibility": "visible",
+      "src": "/experience/assets/miague-hero.webp",
+      "naturalWidth": 1024
+    },
+    {
+      "selector": ".page-hero > div:first-child",
+      "rect": {
+        "x": 105,
+        "y": 204,
+        "w": 1230,
+        "h": 257.5
+      },
+      "display": "block",
+      "opacity": "1",
+      "visibility": "visible",
+      "src": null
+    }
+  ],
+  "filter_open": {
+    "cards": [
+      {
+        "status": "open",
+        "hiddenAttribute": false,
+        "visible": true
+      },
+      {
+        "status": "interest",
+        "hiddenAttribute": true,
+        "visible": false
+      },
+      {
+        "status": "interest",
+        "hiddenAttribute": true,
+        "visible": false
+      }
+    ],
+    "active": "Tout voir",
+    "pressed": [
+      "false",
+      "true",
+      "false"
+    ]
+  },
+  "filter_interest": {
+    "cards": [
+      {
+        "status": "open",
+        "hiddenAttribute": true,
+        "visible": false
+      },
+      {
+        "status": "interest",
+        "hiddenAttribute": false,
+        "visible": true
+      },
+      {
+        "status": "interest",
+        "hiddenAttribute": false,
+        "visible": true
+      }
+    ],
+    "active": "Tout voir",
+    "pressed": [
+      "false",
+      "false",
+      "true"
+    ]
+  },
+  "filter_all": {
+    "cards": [
+      {
+        "status": "open",
+        "hiddenAttribute": false,
+        "visible": true
+      },
+      {
+        "status": "interest",
+        "hiddenAttribute": false,
+        "visible": true
+      },
+      {
+        "status": "interest",
+        "hiddenAttribute": false,
+        "visible": true
+      }
+    ],
+    "active": "Tout voir",
+    "pressed": [
+      "true",
+      "false",
+      "false"
+    ]
+  },
+  "monthlyHero": {
+    "heading": {
+      "x": 0,
+      "y": 227.5,
+      "width": 676.796875,
+      "height": 78,
+      "top": 227.5,
+      "right": 676.796875,
+      "bottom": 305.5,
+      "left": 0
+    },
+    "h1font": "30px"
+  },
+  "studioEmpty": {
+    "valid": false,
+    "active": "password",
+    "response": ""
+  }
+}

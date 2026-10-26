@@ -1,0 +1,14 @@
+HTML pages=33 input/control elements=182; missing internal links=0
+test_full_payment_state_machine (test_payment_workflow.PaymentFlow.test_full_payment_state_machine) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.774s
+
+OK
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK
+CSS parser PASS; uncovered classes: 7 ['active', 'cover-photo', 'hero-image', 'home-page', 'residence-featured', 'results-heading', 'search-heading']
+Official media files local: 9

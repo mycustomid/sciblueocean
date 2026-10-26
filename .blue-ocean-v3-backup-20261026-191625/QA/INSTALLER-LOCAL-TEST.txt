@@ -1,0 +1,5 @@
+2026-10-26:
+Ran scripts/apply.sh in simulated Git environment with exact HEAD string and current original media fixture files.
+--dry-run exit 0; --apply exit 0; 41 new/changed target entries, backup directory produced.
+Media bytes remained unchanged; public/experience/assets/refinement-v2.css and public/studio/payments/index.html created, src/pages/index.astro updated in mock.
+This does not verify actual running Git repo/real Astro build.

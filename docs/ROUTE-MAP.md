@@ -1,13 +1,21 @@
-# Route map
+# SCI V3 paired routes
+Every FR guest route `/experience/<route>/` has a corresponding EN `/experience/en/<route>/`.
 
-## Guest
+Routes:
+- `/` guest collection homepage
+- `/stays/` collection filter
+- `/stays/miague/`, `/stays/ebene/`, `/stays/amara/` property gallery and relevant CTA
+- `/search/` location/date/guest search results
+- `/booking/` studio reservation request
+- `/manage/` reference+email tracking
+- `/payment/` payment intent/status
+- `/monthly/` expressions of interest
+- `/bonapriso/` neighbourhood
+- `/our-story/` company story
+- `/faq/` frequently asked questions
+- `/policies/` conditions and privacy draft requiring approval
+- `/contact/` local-demo enquiry form
+- `/journal/` editorial guide
+- `/signin/`, `/signup/` route preserved, NOT CONNECTED to production guest auth
 
-`/` and `/experience/` homepage; `/experience/stays/`; `/experience/stays/miague/`; `/experience/stays/ebene/`; `/experience/stays/amara/`; `/experience/search/`; `/experience/booking/`; `/experience/manage/`; `/experience/signin/`; `/experience/signup/`; `/experience/monthly/`; `/experience/bonapriso/`; `/experience/our-story/`; `/experience/journal/`; `/experience/contact/`; `/experience/faq/`; `/experience/policies/`.
-
-## Studio (local only)
-
-`/studio/` role login; `/studio/dashboard/`; `/studio/bookings/`; `/studio/calendar/`; `/studio/arrivals/`; `/studio/guests/`; `/studio/housekeeping/`; `/studio/folios/`; `/studio/maintenance/`; `/studio/reports/`; `/studio/portfolio/`; `/studio/companies/`; `/studio/people/`; `/studio/settings/`.
-
-## Preserved upstream
-
-The existing `/workspace/` is not overwritten; existing `/api/` endpoints are not overwritten; `backend-rust/` is untouched. `/studio/` is a separate isolated demonstration. `src/pages/index.astro` is the only target file replaced after applying.
+`/studio/` and `/workspace/` are preserved, not publicly authenticated production ERP.

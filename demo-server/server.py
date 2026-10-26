@@ -18,8 +18,12 @@ from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
+# v3 provider adapter: server-side, never bundled to static public/ directory.
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0,str(HERE.parent/'integrations'/'payments'))
+from flutterwave_hosted import HostedCheckout, CheckoutOrder, CheckoutError, verify_webhook_hash_v3
+from settlement import reconcile_verified, PaymentMismatch
 STATIC = (HERE.parent / 'public') if (HERE.parent / 'public' / 'experience').exists() else (HERE.parent / 'patch' / 'public')
 DB_DEFAULT = HERE / 'demo.sqlite3'
 DEMO_PASSWORD = os.environ.get('BLUE_OCEAN_DEMO_PASSWORD', 'demo-only-change-me')
@@ -97,10 +101,18 @@ def init_db(path):
      amount_xaf INTEGER NOT NULL CHECK(amount_xaf>0), currency TEXT NOT NULL DEFAULT 'XAF',
      state TEXT NOT NULL DEFAULT 'awaiting_payment',
      provider_transaction_id TEXT DEFAULT '', updated_at TEXT NOT NULL);
+   CREATE TABLE IF NOT EXISTS interests (id INTEGER PRIMARY KEY AUTOINCREMENT,
+     reference TEXT UNIQUE NOT NULL, property TEXT NOT NULL, guest TEXT NOT NULL,
+     email TEXT NOT NULL, movein TEXT, message TEXT NOT NULL, created_at TEXT NOT NULL);
+   CREATE TABLE IF NOT EXISTS enquiries (id INTEGER PRIMARY KEY AUTOINCREMENT,
+     reference TEXT UNIQUE NOT NULL, guest TEXT NOT NULL, email TEXT NOT NULL,
+     reason TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL);
    CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY AUTOINCREMENT,
      actor TEXT NOT NULL, action TEXT NOT NULL, entity TEXT NOT NULL,
      reference TEXT NOT NULL, created_at TEXT NOT NULL);
   ''')
+  if 'checkout_url' not in [row[1] for row in cx.execute('PRAGMA table_info(payment_intents)')]:
+   cx.execute("ALTER TABLE payment_intents ADD COLUMN checkout_url TEXT DEFAULT ''")
   cx.execute("INSERT OR IGNORE INTO tasks(id,property,room,title,status,assignee,created_at) VALUES (1,'MIAGUE','Studio 01','Contrôle avant arrivée','open','',?)",(utcnow(),))
  return path
 
@@ -219,6 +231,22 @@ class Handler(SimpleHTTPRequestHandler):
   p=self.route()
   if p=='/':self.send_response(302);self.send_header('Location','/experience/');self.end_headers();return
   if p=='/api/demo/health':return self.send_json(200,{'ok':True,'mode':'DEMO_LOCAL_ONLY','payment':'DISABLED'})
+  if p=='/api/demo/flutterwave/callback':
+   # This is a loopback-only integration harness. For real external callbacks,
+   # deploy a secure HTTPS integration service, not this demo server.
+   params=parse_qs(urlsplit(self.path).query)
+   txid=params.get('transaction_id',[''])[0]
+   key=os.getenv('FLW_SECRET_KEY','')
+   callback=os.getenv('FLW_CALLBACK_URL','')
+   if os.getenv('BLUE_OCEAN_ENABLE_FLW_TEST_CHECKOUT')!='YES' or not key.startswith('FLWSECK_TEST'):
+    return self.send_json(503,{'error':'Payment provider not enabled in test mode'})
+   try:
+    with connection(self.server.db_path) as cx:
+     cx.execute('BEGIN IMMEDIATE')
+     result=reconcile_verified(cx,txid,key,callback)
+    return self.send_json(200,{'verified':True,'payment':result,'mode':'TEST_ONLY'})
+   except (ValueError,CheckoutError,PaymentMismatch) as e:return self.send_json(409,{'error':str(e)})
+
   if p=='/api/demo/public/availability':
    q=parse_qs(urlsplit(self.path).query);a=q.get('checkin',[''])[0];b=q.get('checkout',[''])[0]
    try:n=nights(a,b)
@@ -247,6 +275,21 @@ class Handler(SimpleHTTPRequestHandler):
  def do_POST(self):
   p=self.route()
   if not p.startswith('/api/demo/'):return self.send_json(404,{'error':'Unknown API endpoint'})
+  if p=='/api/demo/flutterwave/webhook':
+   key=os.getenv('FLW_SECRET_KEY','');secret=os.getenv('FLW_SECRET_HASH','')
+   if os.getenv('BLUE_OCEAN_ENABLE_FLW_TEST_CHECKOUT')!='YES' or not key.startswith('FLWSECK_TEST'):
+    return self.send_json(503,{'error':'Payment provider not enabled in test mode'})
+   if not verify_webhook_hash_v3(self.headers.get('verif-hash',''),secret):
+    return self.send_json(401,{'error':'Invalid webhook signature'})
+   data=body.get('data') if isinstance(body,dict) else None
+   transaction_id=data.get('id') if isinstance(data,dict) else None
+   if transaction_id is None:return self.send_json(400,{'error':'Missing transaction'})
+   try:
+    with connection(self.server.db_path) as cx:
+     cx.execute('BEGIN IMMEDIATE')
+     result=reconcile_verified(cx,str(transaction_id),key,os.getenv('FLW_CALLBACK_URL',''))
+    return self.send_json(200,{'received':True,'verified':True,'state':result['state']})
+   except (ValueError,CheckoutError,PaymentMismatch) as e:return self.send_json(409,{'error':str(e)})
   if p=='/api/demo/logout':
    s=self.user();cookie=self.headers.get('Cookie','');m=re.search(r'bo_demo_session=([a-f0-9]{64})',cookie)
    if m:
@@ -276,7 +319,50 @@ class Handler(SimpleHTTPRequestHandler):
      cx.execute('INSERT INTO payment_intents(booking_id,external_reference,amount_xaf,updated_at) VALUES (?,?,?,?)',(booking['id'],pid,booking['estimate_xaf'],utcnow()))
      cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES (?,?,?,?,?)',('guest','payment:intent','booking',ref,utcnow()))
      intent=one(cx,'SELECT * FROM payment_intents WHERE booking_id=?',(booking['id'],))
-   return self.send_json(200,{'mode':'DEMO_ONLY','intent':{'reference':intent['external_reference'],'state':intent['state'],'currency':'XAF','amount_xaf':intent['amount_xaf']},'checkout_url':None,'message':'Awaiting payment. Provider checkout is not connected. Demo finance operator may test settlement.'})
+   checkout_url=None
+   # ACTUAL provider API call available ONLY with explicit TEST key and sandbox opt-in.
+   # This reference service always binds to 127.0.0.1. Production must implement
+   # authenticated guest sessions, rate limits, queue/webhooks, and deployment separately.
+   key=os.getenv('FLW_SECRET_KEY','')
+   callback=os.getenv('FLW_CALLBACK_URL','')
+   enabled=(os.getenv('BLUE_OCEAN_ENABLE_FLW_TEST_CHECKOUT')=='YES' and key.startswith('FLWSECK_TEST'))
+   if enabled and intent['state'] not in ('paid','failed'):
+    if intent.get('checkout_url'):
+     checkout_url=intent['checkout_url']
+    else:
+     try:
+      order=CheckoutOrder(intent['external_reference'],intent['amount_xaf'],booking['email'],booking['guest'],callback)
+      checkout_url=HostedCheckout(key).create(order)
+     except CheckoutError as e:
+      return self.send_json(502,{'error':'Flutterwave test checkout unavailable: '+str(e)})
+     with connection(self.server.db_path) as cx:
+      cx.execute('BEGIN IMMEDIATE')
+      cx.execute("UPDATE payment_intents SET provider='FLUTTERWAVE_TEST',checkout_url=?,updated_at=? WHERE id=? AND state='awaiting_payment'",(checkout_url,utcnow(),intent['id']))
+   return self.send_json(200,{'mode':'DEMO_TEST_ONLY','intent':{'reference':intent['external_reference'],'state':intent['state'],'currency':'XAF','amount_xaf':intent['amount_xaf']},'checkout_url':checkout_url,'message':'TEST checkout' if checkout_url else 'Provider credentials not connected; no payment is collected.'})
+  if p in ('/api/demo/public/interest','/api/demo/public/contact'):
+   # Loopback demo database only. No outbound email and never a production guest identity.
+   if clean(body.get('website')):return self.send_json(200,{'reference':'DISCARDED','mode':'DEMO_ONLY'})
+   guest=clean(body.get('guest'),100);email=clean(body.get('email'),160).lower()
+   if len(guest)<2 or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',email):
+    return self.send_json(400,{'error':'Valid name and email required'})
+   reference=('INT-' if p.endswith('interest') else 'MSG-')+secrets.token_hex(5).upper()
+   with connection(self.server.db_path) as cx:
+    cx.execute('BEGIN IMMEDIATE')
+    if p.endswith('interest'):
+     property_id=clean(body.get('property'),20).lower()
+     if property_id not in ('ebene','amara'):return self.send_json(400,{'error':'Only future residences accept interest'})
+     movein=clean(body.get('movein'),10)
+     if movein:
+      try:date.fromisoformat(movein)
+      except ValueError:return self.send_json(400,{'error':'Invalid move-in date'})
+     cx.execute('INSERT INTO interests(reference,property,guest,email,movein,message,created_at) VALUES(?,?,?,?,?,?,?)',
+       (reference,property_id,guest,email,movein,clean(body.get('message'),1500),utcnow()))
+    else:
+     message=clean(body.get('message'),1500)
+     if len(message)<6:return self.send_json(400,{'error':'Message too short'})
+     cx.execute('INSERT INTO enquiries(reference,guest,email,reason,message,created_at) VALUES(?,?,?,?,?,?)',
+       (reference,guest,email,clean(body.get('reason'),80),message,utcnow()))
+   return self.send_json(201,{'reference':reference,'mode':'DEMO_ONLY','status':'received'})
   if p=='/api/demo/public/request':
    try:
     with connection(self.server.db_path) as cx:

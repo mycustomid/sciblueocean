@@ -1,0 +1,5 @@
+COMMAND: python tests/browser_smoke.py
+STATUS: BLOCKED (sandbox Chromium browser administrator policy)
+ACTUAL: playwright._impl._errors.Error: Page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR at http://127.0.0.1:8765/experience/
+RETRY: file:// local temporary preview also returned ERR_BLOCKED_BY_ADMINISTRATOR.
+INTERPRETATION: No screenshots generated, no desktop/mobile PASS claimed. Re-run on local developer machine with actual browser access before release.

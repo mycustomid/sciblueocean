@@ -1,0 +1,21 @@
+test_contact_persist (test_guest_v3_api.GuestV3API.test_contact_persist) ... ok
+test_fr_en_live_static_http (test_guest_v3_api.GuestV3API.test_fr_en_live_static_http) ... ok
+test_interest_cannot_reserve_ready_studio (test_guest_v3_api.GuestV3API.test_interest_cannot_reserve_ready_studio) ... ok
+test_interested_prospect_persist (test_guest_v3_api.GuestV3API.test_interested_prospect_persist) ... ok
+test_invalid_message_rejected (test_guest_v3_api.GuestV3API.test_invalid_message_rejected) ... ok
+test_provider_test_disabled_without_keys (test_guest_v3_api.GuestV3API.test_provider_test_disabled_without_keys) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.665s
+
+OK
+test_checkout_payload (test_hosted_v3.HostedV3Test.test_checkout_payload) ... ok
+test_reject_callback_http (test_hosted_v3.HostedV3Test.test_reject_callback_http) ... ok
+test_reject_untrusted_url (test_hosted_v3.HostedV3Test.test_reject_untrusted_url) ... ok
+test_verify_all_fields (test_hosted_v3.HostedV3Test.test_verify_all_fields) ... ok
+test_webhook_and_idempotency (test_hosted_v3.HostedV3Test.test_webhook_and_idempotency) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.002s
+
+OK

@@ -1,0 +1,26 @@
+test_01_public_health (test_demo_api.DemoAPI.test_01_public_health) ... ok
+test_02_invalid_login_and_bad_password (test_demo_api.DemoAPI.test_02_invalid_login_and_bad_password) ... ok
+test_03_no_cookie_snapshot_denied (test_demo_api.DemoAPI.test_03_no_cookie_snapshot_denied) ... ok
+test_04_role_scoping_finance (test_demo_api.DemoAPI.test_04_role_scoping_finance) ... ok
+test_05_role_mutation_denied (test_demo_api.DemoAPI.test_05_role_mutation_denied) ... ok
+test_06_csrf_enforced (test_demo_api.DemoAPI.test_06_csrf_enforced) ... ok
+test_07_public_booking_success_and_lookup (test_demo_api.DemoAPI.test_07_public_booking_success_and_lookup) ... ok
+test_08_invalid_dates_and_unavailable_property (test_demo_api.DemoAPI.test_08_invalid_dates_and_unavailable_property) ... ok
+test_09_full_lifecycle_and_overlap (test_demo_api.DemoAPI.test_09_full_lifecycle_and_overlap) ... ok
+test_10_housekeeping_allowed_but_no_charge (test_demo_api.DemoAPI.test_10_housekeeping_allowed_but_no_charge) ... ok
+test_11_owner_read_only (test_demo_api.DemoAPI.test_11_owner_read_only) ... ok
+test_12_logout_revokes_session (test_demo_api.DemoAPI.test_12_logout_revokes_session) ... ok
+test_13_custom_payment_route_missing (test_demo_api.DemoAPI.test_13_custom_payment_route_missing) ... ok
+test_14_unconnected_engine_reported (test_demo_api.DemoAPI.test_14_unconnected_engine_reported) ... ok
+test_15_browser_assets_and_routes_exist (test_demo_api.DemoAPI.test_15_browser_assets_and_routes_exist) ... ok
+test_contact_persist (test_guest_v3_api.GuestV3API.test_contact_persist) ... ok
+test_fr_en_live_static_http (test_guest_v3_api.GuestV3API.test_fr_en_live_static_http) ... ok
+test_interest_cannot_reserve_ready_studio (test_guest_v3_api.GuestV3API.test_interest_cannot_reserve_ready_studio) ... ok
+test_interested_prospect_persist (test_guest_v3_api.GuestV3API.test_interested_prospect_persist) ... ok
+test_invalid_message_rejected (test_guest_v3_api.GuestV3API.test_invalid_message_rejected) ... ok
+test_provider_test_disabled_without_keys (test_guest_v3_api.GuestV3API.test_provider_test_disabled_without_keys) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 1.513s
+
+OK
