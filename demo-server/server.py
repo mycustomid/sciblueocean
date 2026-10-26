@@ -24,6 +24,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE.parent/'integrations'/'payments'))
 from flutterwave_hosted import HostedCheckout, CheckoutOrder, CheckoutError, verify_webhook_hash_v3
 from settlement import reconcile_verified, PaymentMismatch
+from pricing import migrate as pricing_migrate, price_quote, blocked as pricing_blocked, occupied as pricing_occupied
 STATIC = (HERE.parent / 'public') if (HERE.parent / 'public' / 'experience').exists() else (HERE.parent / 'patch' / 'public')
 DB_DEFAULT = HERE / 'demo.sqlite3'
 DEMO_PASSWORD = os.environ.get('BLUE_OCEAN_DEMO_PASSWORD', 'demo-only-change-me')
@@ -47,7 +48,8 @@ ACTION_ROLES = {
  'task:create': {'housekeeping','manager'}, 'task:update': {'housekeeping','manager'},
  'maintenance:create': {'maintenance','manager','reception'}, 'maintenance:update': {'maintenance','manager'},
  'folio:charge': {'finance','manager'},
- 'payment:test-settle': {'finance','manager'}
+ 'payment:test-settle': {'finance','manager'},
+ 'pricing:write': {'manager'}, 'inventory:block': {'manager'}
 }
 SESSIONS = {} # memory-only, expiry on each read; invalidated on restart
 SESS_LOCK = threading.RLock()
@@ -111,6 +113,7 @@ def init_db(path):
      actor TEXT NOT NULL, action TEXT NOT NULL, entity TEXT NOT NULL,
      reference TEXT NOT NULL, created_at TEXT NOT NULL);
   ''')
+  pricing_migrate(cx)
   if 'checkout_url' not in [row[1] for row in cx.execute('PRAGMA table_info(payment_intents)')]:
    cx.execute("ALTER TABLE payment_intents ADD COLUMN checkout_url TEXT DEFAULT ''")
   cx.execute("INSERT OR IGNORE INTO tasks(id,property,room,title,status,assignee,created_at) VALUES (1,'MIAGUE','Studio 01','Contrôle avant arrivée','open','',?)",(utcnow(),))
@@ -127,10 +130,7 @@ def one(cx,q,p=()):
  r=cx.execute(q,p).fetchone();return dict(r) if r else None
 
 def conflict(cx,checkin,checkout,exclude=None):
- q="SELECT id FROM bookings WHERE property='MIAGUE' AND status IN ('confirmed','checked_in') AND checkin<? AND checkout>?"
- params=[checkout,checkin]
- if exclude is not None:q+=' AND id<>?';params.append(exclude)
- return cx.execute(q,params).fetchone() is not None
+ return pricing_blocked(cx,checkin,checkout) or pricing_occupied(cx,checkin,checkout,exclude)
 
 def create_booking(cx, payload, actor='guest'):
  if payload.get('property','miague').lower() not in ('miague','miague-studio'):
@@ -140,9 +140,11 @@ def create_booking(cx, payload, actor='guest'):
  if not 2<=len(guest)<=100 or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',email):raise ValueError('Valid guest name and email are required')
  guests=int(payload.get('guests',1))
  if not 1<=guests<=6:raise ValueError('Guests must be between 1 and 6')
+ quote=price_quote(cx,a,b,guests)
+ if not quote['available']:raise ValueError('Dates unavailable in demo inventory')
  phone=clean(payload.get('phone'),32);ref='BO-'+secrets.token_hex(4).upper();now=utcnow()
  cx.execute('''INSERT INTO bookings(reference,guest,email,phone,checkin,checkout,guests,nights,estimate_xaf,created_at,updated_at)
- VALUES(?,?,?,?,?,?,?,?,?,?,?)''',(ref,guest,email,phone,a,b,guests,n,n*40000,now,now))
+ VALUES(?,?,?,?,?,?,?,?,?,?,?)''',(ref,guest,email,phone,a,b,guests,n,quote['total_estimate_xaf'],now,now))
  cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES (?,?,?,?,?)',(actor,'booking:create','booking',ref,now))
  return one(cx,'SELECT * FROM bookings WHERE reference=?',(ref,))
 
@@ -247,12 +249,18 @@ class Handler(SimpleHTTPRequestHandler):
     return self.send_json(200,{'verified':True,'payment':result,'mode':'TEST_ONLY'})
    except (ValueError,CheckoutError,PaymentMismatch) as e:return self.send_json(409,{'error':str(e)})
 
-  if p=='/api/demo/public/availability':
-   q=parse_qs(urlsplit(self.path).query);a=q.get('checkin',[''])[0];b=q.get('checkout',[''])[0]
-   try:n=nights(a,b)
-   except ValueError as e:return self.send_json(400,{'error':str(e)})
-   with connection(self.server.db_path) as cx:busy=conflict(cx,a,b)
-   return self.send_json(200,{'property':'miague','available':not busy,'nights':n,'total_indicative_xaf':n*40000,'currency':'XAF','not_a_guaranteed_booking':True})
+  if p in ('/api/demo/public/quote','/api/demo/public/availability'):
+   q=parse_qs(urlsplit(self.path).query)
+   a=q.get('checkin',[''])[0];b=q.get('checkout',[''])[0]
+   try:
+    with connection(self.server.db_path) as cx:
+     quote=price_quote(cx,a,b,q.get('guests',['1'])[0],q.get('property',['miague'])[0])
+   except (ValueError,TypeError) as e:return self.send_json(400,{'error':str(e)})
+   if p.endswith('/availability'):
+    return self.send_json(200, {'property':'miague','available':quote['available'],
+      'nights':quote['nights'],'total_indicative_xaf':quote['total_estimate_xaf'],
+      'currency':'XAF','not_a_guaranteed_booking':True,'breakdown':quote})
+   return self.send_json(200, quote)
   if p=='/api/demo/public/lookup':
    q=parse_qs(urlsplit(self.path).query);ref=clean(q.get('reference',[''])[0],24);email=clean(q.get('email',[''])[0],160).lower()
    with connection(self.server.db_path) as cx:
@@ -261,6 +269,15 @@ class Handler(SimpleHTTPRequestHandler):
      intent=one(cx, 'SELECT state,amount_xaf,currency,external_reference FROM payment_intents WHERE booking_id=?',(item['id'],))
      del item['id'];item['payment']=intent or {'state':'not_initiated'}
    return self.send_json(200,{'booking':item}) if item else self.send_json(404,{'error':'No matching demo request'})
+  if p=='/api/demo/analytics/summary':
+   s=self.guard()
+   if not s:return
+   if s['role'] not in ('manager','owner'):
+    return self.send_json(403,{'error':'Analytics limited to authorized management roles'})
+   with connection(self.server.db_path) as cx:
+    events=rows(cx,'SELECT event,COUNT(*) count FROM conversion_events GROUP BY event ORDER BY event')
+    daily=rows(cx,'SELECT substr(created_at,1,10) day,event,COUNT(*) count FROM conversion_events GROUP BY substr(created_at,1,10),event ORDER BY day DESC LIMIT 120')
+   return self.send_json(200,{'mode':'DEMO_LOCAL_ONLY','counts':events,'daily':daily,'identity_tracking':False})
   if p=='/api/demo/me':
    s=self.guard()
    if s:return self.send_json(200,{'role':s['role'],'property':s['property'],'views':sorted(VIEWS[s['role']]),'csrf':s['csrf'],'demo':True})
@@ -281,6 +298,8 @@ class Handler(SimpleHTTPRequestHandler):
     return self.send_json(503,{'error':'Payment provider not enabled in test mode'})
    if not verify_webhook_hash_v3(self.headers.get('verif-hash',''),secret):
     return self.send_json(401,{'error':'Invalid webhook signature'})
+   try:body=json_body(self)
+   except (ValueError,json.JSONDecodeError) as e:return self.send_json(400,{'error':str(e)})
    data=body.get('data') if isinstance(body,dict) else None
    transaction_id=data.get('id') if isinstance(data,dict) else None
    if transaction_id is None:return self.send_json(400,{'error':'Missing transaction'})
@@ -303,6 +322,18 @@ class Handler(SimpleHTTPRequestHandler):
    token=secrets.token_hex(32);csrf=secrets.token_hex(16)
    with SESS_LOCK:SESSIONS[token]={'role':ROLES[name][0],'property':ROLES[name][1],'csrf':csrf,'expires':datetime.now(timezone.utc)+timedelta(hours=2)}
    return self.send_json(200,{'ok':True,'role':name,'csrf':csrf}, {'Set-Cookie':f'bo_demo_session={token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=7200'})
+  if p=='/api/demo/public/event':
+   event=clean(body.get('event'),40)
+   if event not in {'property_viewed','dates_selected','quote_shown','booking_started','booking_submitted','payment_verified'}:
+    return self.send_json(400,{'error':'Unrecognized event'})
+   locale=clean(body.get('locale'),2)
+   if locale not in ('fr','en'):return self.send_json(400,{'error':'Invalid locale'})
+   path=clean(body.get('path'),120).split('?')[0]
+   if not path.startswith('/experience/'):return self.send_json(400,{'error':'Invalid page path'})
+   with connection(self.server.db_path) as cx:
+    cx.execute('INSERT INTO conversion_events(event,property,locale,path,created_at) VALUES (?,?,?,?,?)',
+      (event,'MIAGUE',locale,path,utcnow()))
+   return self.send_json(202,{'accepted':True,'demo':True})
   if p=='/api/demo/public/payment-intent':
    # Reference + email act as a demo lookup capability; HTTPS authenticated guest required in production.
    ref=clean(body.get('reference'),24);email=clean(body.get('email'),160).lower()
@@ -370,7 +401,9 @@ class Handler(SimpleHTTPRequestHandler):
      item=create_booking(cx,body)
     return self.send_json(201,{'reference':item['reference'],'status':'pending','estimate_xaf':item['estimate_xaf'],'mode':'DEMO_ONLY'})
    except (ValueError,TypeError) as e:return self.send_json(400,{'error':str(e)})
-  if p=='/api/demo/booking/create':action='booking:create'
+  if p=='/api/demo/pricing/rate':action='pricing:write'
+  elif p=='/api/demo/inventory/block':action='inventory:block'
+  elif p=='/api/demo/booking/create':action='booking:create'
   elif p=='/api/demo/booking/transition':action='booking:'+clean(body.get('action'),12).replace('checkin','checkin').replace('checkout','checkout')
   elif p=='/api/demo/task/create':action='task:create'
   elif p=='/api/demo/task/update':action='task:update'
@@ -384,7 +417,23 @@ class Handler(SimpleHTTPRequestHandler):
   try:
    with connection(self.server.db_path) as cx:
     cx.execute('BEGIN IMMEDIATE')
-    if p=='/api/demo/booking/create':out=create_booking(cx,body,s['role'])
+    if p=='/api/demo/pricing/rate':
+     day=clean(body.get('day'),10);date.fromisoformat(day)
+     rate=int(body.get('rate_xaf'))
+     if not 1000<=rate<=10000000:raise ValueError('Rate outside permitted demo range')
+     reason=clean(body.get('reason'),120)
+     if len(reason)<4:raise ValueError('A meaningful reason is required')
+     cx.execute('INSERT INTO rate_overrides(day,rate_xaf,reason,updated_at) VALUES (?,?,?,?) ON CONFLICT(day) DO UPDATE SET rate_xaf=excluded.rate_xaf,reason=excluded.reason,updated_at=excluded.updated_at',
+       (day,rate,reason,utcnow()))
+     out={'id':day,'rate_xaf':rate,'reason':reason}
+    elif p=='/api/demo/inventory/block':
+     a=clean(body.get('checkin'),10);b=clean(body.get('checkout'),10);nights(a,b)
+     if pricing_occupied(cx,a,b):raise ValueError('Cannot block dates with an already confirmed guest')
+     reason=clean(body.get('reason'),120)
+     if len(reason)<4:raise ValueError('A meaningful reason is required')
+     cur=cx.execute('INSERT INTO inventory_blocks(from_date,to_date,reason,created_at) VALUES(?,?,?,?)',(a,b,reason,utcnow()))
+     out={'id':cur.lastrowid,'checkin':a,'checkout':b,'reason':reason}
+    elif p=='/api/demo/booking/create':out=create_booking(cx,body,s['role'])
     elif p=='/api/demo/booking/transition':
      bid=int(body.get('id'));act=clean(body.get('action'),12)
      out=transition(cx,bid,act,s['role'])

@@ -1,4 +1,4 @@
 User-agent: *
-Allow: /
+Disallow: /experience/
 Disallow: /studio/
 Disallow: /workspace/
