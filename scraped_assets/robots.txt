@@ -1,0 +1,9 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /staff
+Disallow: /manage
+Disallow: /signin
+Disallow: /signup
+
+Sitemap: https://sciblueocean.com/sitemap.xml
