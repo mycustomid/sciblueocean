@@ -6,3 +6,11 @@ __pycache__/
 .DS_Store
 .blue-ocean-backup*
 *.sqlite3
+
+# Local operational runtime and credentials
+.venv-operations/
+operations-server/private/
+*.sqlite3-wal
+*.sqlite3-shm
+QA/operations-*.log
+QA/tmppw39popu/

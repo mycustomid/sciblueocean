@@ -24,7 +24,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE.parent/'integrations'/'payments'))
 from flutterwave_hosted import HostedCheckout, CheckoutOrder, CheckoutError, verify_webhook_hash_v3
 from settlement import reconcile_verified, PaymentMismatch
-from pricing import migrate as pricing_migrate, price_quote, blocked as pricing_blocked, occupied as pricing_occupied
+from pricing import migrate as pricing_migrate, price_quote, blocked as pricing_blocked, occupied as pricing_occupied, available_rooms as pricing_available_rooms, MIAGUE_ROOM_COUNT
 STATIC = (HERE.parent / 'public') if (HERE.parent / 'public' / 'experience').exists() else (HERE.parent / 'patch' / 'public')
 DB_DEFAULT = HERE / 'demo.sqlite3'
 DEMO_PASSWORD = os.environ.get('BLUE_OCEAN_DEMO_PASSWORD', 'demo-only-change-me')
@@ -85,7 +85,7 @@ def init_db(path):
      property TEXT NOT NULL DEFAULT 'MIAGUE', guest TEXT NOT NULL,
      email TEXT NOT NULL, phone TEXT DEFAULT '', checkin TEXT NOT NULL,
      checkout TEXT NOT NULL, guests INTEGER NOT NULL, nights INTEGER NOT NULL,
-     estimate_xaf INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
+     estimate_xaf INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending', room_number TEXT NOT NULL DEFAULT '',
      created_at TEXT NOT NULL, updated_at TEXT NOT NULL
    );
    CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -113,6 +113,8 @@ def init_db(path):
      actor TEXT NOT NULL, action TEXT NOT NULL, entity TEXT NOT NULL,
      reference TEXT NOT NULL, created_at TEXT NOT NULL);
   ''')
+  if 'room_number' not in [row[1] for row in cx.execute('PRAGMA table_info(bookings)')]:
+   cx.execute("ALTER TABLE bookings ADD COLUMN room_number TEXT NOT NULL DEFAULT ''")
   pricing_migrate(cx)
   if 'checkout_url' not in [row[1] for row in cx.execute('PRAGMA table_info(payment_intents)')]:
    cx.execute("ALTER TABLE payment_intents ADD COLUMN checkout_url TEXT DEFAULT ''")
@@ -131,6 +133,10 @@ def one(cx,q,p=()):
 
 def conflict(cx,checkin,checkout,exclude=None):
  return pricing_blocked(cx,checkin,checkout) or pricing_occupied(cx,checkin,checkout,exclude)
+
+def room_conflict(cx,room_number,checkin,checkout,exclude=None):
+ q="SELECT 1 FROM bookings WHERE property='MIAGUE' AND room_number=? AND status IN ('confirmed','checked_in') AND checkin<? AND checkout>? AND (? IS NULL OR id<>?) LIMIT 1"
+ return bool(cx.execute(q,(room_number,checkout,checkin,exclude,exclude)).fetchone())
 
 def create_booking(cx, payload, actor='guest'):
  if payload.get('property','miague').lower() not in ('miague','miague-studio'):
@@ -161,7 +167,13 @@ def transition(cx,id,action,actor):
  return one(cx,'SELECT * FROM bookings WHERE id=?',(id,))
 
 def snapshot(cx,role):
- bookings=rows(cx,"SELECT id,reference,property,guest,email,checkin,checkout,guests,nights,estimate_xaf,status,created_at FROM bookings WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
+ bookings=rows(cx,"SELECT id,reference,property,guest,email,phone,checkin,checkout,guests,nights,estimate_xaf,status,room_number,created_at FROM bookings WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
+ for booking in bookings:
+  if booking['status']=='pending':
+   occupied= {r[0] for r in cx.execute("SELECT room_number FROM bookings WHERE property='MIAGUE' AND status IN ('confirmed','checked_in') AND checkin<? AND checkout>? AND room_number<>''",(booking['checkout'],booking['checkin']))}
+   blocked=pricing_blocked(cx,booking['checkin'],booking['checkout'])
+   booking['available_room_numbers']=[] if blocked else [f'MIAGUE-{n:02d}' for n in range(1,MIAGUE_ROOM_COUNT+1) if f'MIAGUE-{n:02d}' not in occupied]
+  else: booking['available_room_numbers']=[]
  tasks=rows(cx,"SELECT * FROM tasks WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
  m=rows(cx,"SELECT * FROM maintenance WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
  charges=rows(cx,"SELECT c.*,b.reference,b.status booking_status FROM charges c JOIN bookings b ON b.id=c.booking_id WHERE b.property='MIAGUE' ORDER BY c.id DESC")
@@ -171,7 +183,7 @@ def snapshot(cx,role):
  'arrivals':sum(x['status']=='confirmed' and x['checkin']==today for x in bookings),
  'departures':sum(x['status']=='checked_in' and x['checkout']==today for x in bookings),
  'pending':sum(x['status']=='pending' for x in bookings),
- 'units':1,'tasks_open':sum(x['status']=='open' for x in tasks),
+ 'units':MIAGUE_ROOM_COUNT,'units_available':pricing_available_rooms(cx,today,(date.fromisoformat(today)+timedelta(days=1)).isoformat()),'tasks_open':sum(x['status']=='open' for x in tasks),
  'tasks_progress':sum(x['status']=='in_progress' for x in tasks),
  'tasks_done':sum(x['status']=='done' for x in tasks),
  'folios_open':sum(x['status'] in ('checked_in','confirmed') for x in bookings),

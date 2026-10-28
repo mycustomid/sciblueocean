@@ -249,10 +249,30 @@ button:disabled {
     font-size:11px
 }
 .studio-menu-button {
-    display:none;
-    background:none;
-    border:0;
-    font-size:20px
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:34px;
+    height:34px;
+    border-radius:4px;
+    background:rgba(16,42,51,.06);
+    border:1px solid rgba(16,42,51,.15);
+    color:#102a33;
+    font-size:18px;
+    cursor:pointer;
+    margin-right:12px;
+    transition:all .2s;
+}
+.studio-menu-button:hover {
+    background:rgba(16,42,51,.14);
+}
+.studio-shell.sidebar-collapsed .studio-sidebar {
+    display:none!important;
+    width:0!important;
+    transform:translateX(-100%);
+}
+.studio-shell.sidebar-collapsed {
+    grid-template-columns:minmax(0,1fr)!important;
 }
 .studio-page {
     max-width:1610px;
@@ -1260,3 +1280,4 @@ tr:last-child td {
         transition:none!important
     }
 }
+.room-assignment{display:grid;gap:6px;min-width:150px}.room-assignment select{max-width:100%;min-height:34px;border:1px solid #c7d5ce;border-radius:6px;background:#fff;padding:4px 7px;color:#173639}.room-assignment+.cell-action{margin-top:4px}

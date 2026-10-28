@@ -8,6 +8,7 @@ from datetime import date, timedelta
 
 BASE_RATE_XAF = 40000  # Public reference price: Miague from 40,000 FCFA/night
 MAX_NIGHTS = 180
+MIAGUE_ROOM_COUNT = 25
 
 
 def migrate(cx):
@@ -49,13 +50,19 @@ def blocked(cx, checkin, checkout):
 
 
 def occupied(cx, checkin, checkout, excluded=None):
-    q = '''SELECT 1 FROM bookings WHERE property='MIAGUE'
-        AND status IN ('confirmed','checked_in') AND checkin<? AND checkout>?'''
+    return available_rooms(cx, checkin, checkout, excluded) <= 0
+
+
+def available_rooms(cx, checkin, checkout, excluded=None):
+    """Count Miague rooms held by pending or occupied by confirmed/in-house stays."""
+    q = '''SELECT COUNT(*) FROM bookings WHERE property='MIAGUE'
+        AND status IN ('pending','confirmed','checked_in') AND checkin<? AND checkout>?'''
     args = [checkout, checkin]
     if excluded is not None:
         q += ' AND id<>?'
         args.append(excluded)
-    return bool(cx.execute(q+' LIMIT 1', args).fetchone())
+    occupied_count = int(cx.execute(q, args).fetchone()[0])
+    return max(0, MIAGUE_ROOM_COUNT - occupied_count)
 
 
 def price_quote(cx, checkin, checkout, guests=1, property_id='miague', today=None):
@@ -77,13 +84,15 @@ def price_quote(cx, checkin, checkout, guests=1, property_id='miague', today=Non
     mandatory_fee = cfg.get('mandatory_fee_xaf', 0)
     verified_tax = cfg.get('verified_tax_xaf', 0) if cfg.get('tax_config_verified', 0) else 0
     estimated = subtotal + mandatory_fee + verified_tax
-    availability = not blocked(cx,checkin,checkout) and not occupied(cx,checkin,checkout)
+    remaining = 0 if blocked(cx,checkin,checkout) else available_rooms(cx,checkin,checkout)
+    availability = remaining > 0
     return {
         'property':'miague','currency':'XAF','checkin':checkin,'checkout':checkout,'guests':count,
         'nights':n, 'nightly_rates':days, 'subtotal_xaf':subtotal,
         'mandatory_fees_xaf':mandatory_fee, 'configured_tax_xaf':verified_tax,
         'tax_status':'verified_configuration' if cfg.get('tax_config_verified', 0) else 'NOT_CONFIGURED',
         'total_estimate_xaf':estimated,'available':availability,
+        'room_count':MIAGUE_ROOM_COUNT,'available_rooms':remaining,
         'quote_status':'INDICATIVE_DEMO_NOT_FINAL','final_total_confirmed':False,
         'inventory_source':'ISOLATED_DEMO_SQLITE_NOT_LIVE_PMS',
         'notice':'Final guest capacity, taxes, policies and pricing require property confirmation.'}

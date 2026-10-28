@@ -60,7 +60,18 @@ if(!['reception','manager'].includes(session.role))$$('[data-action="new-booking
 if(!['housekeeping','manager'].includes(session.role))$$('[data-action="new-task"]').forEach(x=>x.hidden=true);
 if(!['maintenance','manager','reception'].includes(session.role))$$('[data-action="new-maintenance"]').forEach(x=>x.hidden=true);
 if(session.role==='finance'||session.role==='manager'){$('[data-table="folios"]')?.closest('.studio-panel')?.querySelector('.panel-heading')?.insertAdjacentHTML('beforeend','<button class="studio-primary" data-action="add-charge">+ Charge test</button>');}
-const sidebar=$('.studio-sidebar');$('[data-studio-menu]')?.addEventListener('click',()=>sidebar.classList.toggle('mobile-open'));
+const shell=$('.studio-shell');const sidebar=$('.studio-sidebar');
+const isMobile=()=>window.innerWidth<=1024;
+const setSidebar=(collapsed)=>{
+  if(isMobile()){sidebar?.classList.toggle('mobile-open',!collapsed);}
+  else{shell?.classList.toggle('sidebar-collapsed',collapsed);localStorage.setItem('blueocean-sidebar-collapsed',collapsed?'true':'false');}
+};
+if(!isMobile()&&localStorage.getItem('blueocean-sidebar-collapsed')==='true'){setSidebar(true);}
+$('[data-studio-menu]')?.addEventListener('click',()=>{
+  const isHidden=isMobile()?!sidebar?.classList.contains('mobile-open'):shell?.classList.contains('sidebar-collapsed');
+  setSidebar(!isHidden);
+});
+$('[data-sidebar-close]')?.addEventListener('click',()=>setSidebar(true));
 $('[data-dialog-close]')?.addEventListener('click',()=>$('[data-dialog]')?.close());
 $('[data-dialog]')?.addEventListener('click',e=>{if(e.target.hasAttribute('data-dialog'))e.target.close()});
 document.addEventListener('click',async e=>{const write=e.target.closest('[data-write]');if(write){await writeAction(write);return}const control=e.target.closest('[data-action]');if(!control)return;switch(control.dataset.action){case 'refresh':return refresh();case 'new-booking':return newBooking();case 'new-task':return newTask();case 'new-maintenance':return newMaintenance();case 'add-charge':return addCharge();case 'month-prev':month.setMonth(month.getMonth()-1);return renderCalendar(state?.bookings||[]);case 'month-next':month.setMonth(month.getMonth()+1);return renderCalendar(state?.bookings||[]);case 'logout':try{await api('/logout',{method:'POST',body:{}})}finally{location.href='/studio/'};}});
