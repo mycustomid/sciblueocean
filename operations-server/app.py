@@ -27,7 +27,7 @@ sys.path.insert(0, str(ROOT / 'demo-server'))
 spec = importlib.util.spec_from_file_location('booking_business_core', ROOT / 'demo-server/server.py')
 core = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(core)
-DEFAULT_DB = Path(__file__).resolve().parent / 'private/operations.sqlite3'
+DEFAULT_DB = Path(os.environ.get('OPERATIONS_DB_PATH', Path(__file__).resolve().parent / 'private/operations.sqlite3'))
 PASSWORDS = PasswordHasher()
 VERIFY_SLOTS = threading.BoundedSemaphore(2)
 COOKIE = 'bo_staff_session'
@@ -621,7 +621,8 @@ def main():
                 raise SystemExit('Staff account not found')
         print('Staff access updated; existing sessions revoked.')
     else:
-        if args.host not in ('127.0.0.1', '::1', 'localhost'):
+        allow_docker = os.environ.get('ALLOW_DOCKER_INGRESS') == '1'
+        if not allow_docker and args.host not in ('127.0.0.1', '::1', 'localhost'):
             raise SystemExit('Public binding refused. HTTPS deployment and ingress review required.')
         from waitress import serve
         app = create_app(args.db)

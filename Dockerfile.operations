@@ -1,0 +1,33 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    OPERATIONS_DB_PATH=/app/data/operations.sqlite3 \
+    ALLOW_DOCKER_INGRESS=1 \
+    PORT=8766
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libffi-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy backend dependencies
+COPY demo-server /app/demo-server
+COPY public /app/public
+COPY operations-server /app/operations-server
+
+WORKDIR /app/operations-server
+RUN mkdir -p /app/data /app/operations-server/private
+
+EXPOSE 8766
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://127.0.0.1:8766/api/staff/session || exit 1
+
+CMD ["python", "app.py", "serve", "--host", "0.0.0.0", "--port", "8766"]

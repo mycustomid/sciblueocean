@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/staff/:path*",
+      "destination": "https://sciblueocean-api.163.61.44.41.sslip.io/api/staff/:path*"
+    },
+    {
+      "source": "/api/booking/:path*",
+      "destination": "https://sciblueocean-api.163.61.44.41.sslip.io/api/booking/:path*"
+    }
+  ]
+}

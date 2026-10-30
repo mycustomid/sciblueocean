@@ -1,0 +1,7 @@
+QA/
+graphify-out/
+tests/
+.venv/
+.venv-operations/
+*.sqlite3*
+*.log

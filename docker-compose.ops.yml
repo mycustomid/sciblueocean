@@ -1,0 +1,34 @@
+services:
+  sciblueocean-ops:
+    build:
+      context: .
+      dockerfile: Dockerfile.operations
+    container_name: sciblueocean-ops
+    restart: unless-stopped
+    environment:
+      - PORT=8766
+      - ALLOW_DOCKER_INGRESS=1
+      - OPERATIONS_DB_PATH=/app/data/operations.sqlite3
+    volumes:
+      - ops_data:/app/data
+    networks:
+      - coolify
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sciblueocean-ops.rule=Host(`sciblueocean-api.163.61.44.41.sslip.io`)"
+      - "traefik.http.routers.sciblueocean-ops.entrypoints=https"
+      - "traefik.http.routers.sciblueocean-ops.tls=true"
+      - "traefik.http.routers.sciblueocean-ops.tls.certresolver=letsencrypt"
+      - "traefik.http.services.sciblueocean-ops.loadbalancer.server.port=8766"
+
+volumes:
+  ops_data:
+
+networks:
+  coolify:
+    external: true
