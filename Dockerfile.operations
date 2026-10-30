@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend dependencies
 COPY demo-server /app/demo-server
+COPY integrations /app/integrations
 COPY public /app/public
 COPY operations-server /app/operations-server
 
