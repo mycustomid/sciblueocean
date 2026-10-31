@@ -211,14 +211,16 @@ def create_app(database=DEFAULT_DB, key_path=None):
     @app.before_request
     def transport():
         # Bind loopback AND validate Host to prevent DNS rebinding of local staff data.
-        if not re.fullmatch(r'(?:127\.0\.0\.1|localhost|\[::1\])(?::\d{1,5})?', request.host):
-            return jsonify(error='Unrecognized host'), 400
-        if request.method not in ('GET', 'HEAD', 'OPTIONS'):
-            origin = request.headers.get('Origin')
-            if origin and origin != request.host_url.rstrip('/'):
-                return jsonify(error='Origin denied'), 403
-            if request.headers.get('Sec-Fetch-Site') == 'cross-site':
-                return jsonify(error='Cross-site request denied'), 403
+        allow_docker = os.environ.get('ALLOW_DOCKER_INGRESS') == '1'
+        if not allow_docker:
+            if not re.fullmatch(r'(?:127\.0\.0\.1|localhost|\[::1\])(?::\d{1,5})?', request.host):
+                return jsonify(error='Unrecognized host'), 400
+            if request.method not in ('GET', 'HEAD', 'OPTIONS'):
+                origin = request.headers.get('Origin')
+                if origin and origin != request.host_url.rstrip('/'):
+                    return jsonify(error='Origin denied'), 403
+                if request.headers.get('Sec-Fetch-Site') == 'cross-site':
+                    return jsonify(error='Cross-site request denied'), 403
 
     @app.after_request
     def headers(response):
