@@ -22,6 +22,7 @@ from argon2.exceptions import VerificationError, InvalidHashError
 from flask import Flask, jsonify, request, redirect, send_from_directory
 from prepare_ui import render_html
 import invoices
+import discounts
 import room_catalog
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,7 +80,16 @@ def initialize(path, key_path=None):
             cx.execute("ALTER TABLE bookings ADD COLUMN identity_type TEXT NOT NULL DEFAULT ''")
         if 'identity_number' not in booking_columns:
             cx.execute("ALTER TABLE bookings ADD COLUMN identity_number TEXT NOT NULL DEFAULT ''")
+        if 'subtotal_xaf' not in booking_columns:
+            cx.execute('ALTER TABLE bookings ADD COLUMN subtotal_xaf INTEGER')
+        if 'discount_percent' not in booking_columns:
+            cx.execute('ALTER TABLE bookings ADD COLUMN discount_percent INTEGER NOT NULL DEFAULT 0')
+        if 'discount_xaf' not in booking_columns:
+            cx.execute('ALTER TABLE bookings ADD COLUMN discount_xaf INTEGER NOT NULL DEFAULT 0')
+        if 'original_estimate_xaf' not in booking_columns:
+            cx.execute('ALTER TABLE bookings ADD COLUMN original_estimate_xaf INTEGER')
         invoices.migrate(cx)
+        discounts.migrate(cx)
         room_catalog.migrate(cx)
         cx.executescript('''
         CREATE TABLE IF NOT EXISTS staff_users (
@@ -336,7 +346,7 @@ def create_app(database=DEFAULT_DB, key_path=None):
         s, error = guard()
         if error:
             return error
-        return jsonify(username=s['username'], role=s['role'], property='MIAGUE', views=views_for(s['role']), csrf=s['csrf'], mode='OPERATIONS_LOCAL')
+        return jsonify(username=s['username'], role=s['role'], property=core.ROLES[s['role']][1], views=views_for(s['role']), csrf=s['csrf'], mode='OPERATIONS_LOCAL')
 
     @app.post('/api/staff/proformas')
     def create_proforma():
@@ -355,6 +365,53 @@ def create_app(database=DEFAULT_DB, key_path=None):
             return jsonify(error=str(exc)), 404
         except (TypeError, ValueError) as exc:
             return jsonify(error=str(exc)), 400
+
+    @app.post('/api/staff/booking/discount')
+    def apply_booking_discount():
+        s, error = guard()
+        if error:
+            return error
+        if s['role'] not in ('reception', 'manager'):
+            return jsonify(error='Access denied'), 403
+        try:
+            payload = body()
+            with db(path) as cx:
+                cx.execute('BEGIN IMMEDIATE')
+                record = discounts.apply(cx, payload.get('booking_id'), payload.get('discount_percent'), s['username'], core.utcnow())
+            return jsonify(record=record)
+        except LookupError as exc:
+            return jsonify(error=str(exc)), 404
+        except ValueError as exc:
+            return jsonify(error=str(exc)), 400
+        except RuntimeError as exc:
+            return jsonify(error=str(exc)), 409
+
+    @app.get('/api/staff/guest-messages')
+    def guest_messages():
+        s, error = guard()
+        if error:
+            return error
+        if s['role'] not in ('reception', 'manager'):
+            return jsonify(error='Access denied'), 403
+        try:
+            offset = int(request.args.get('offset', '0'))
+            if not 0 <= offset <= 1_000_000:
+                raise ValueError('Invalid offset')
+        except ValueError:
+            return jsonify(error='Invalid offset'), 400
+        with db(path) as cx:
+            records = core.rows(cx, '''
+                SELECT * FROM (
+                  SELECT id, 'contact' AS kind, reference, guest, email, reason AS subject,
+                         '' AS movein, message, created_at FROM enquiries
+                  UNION ALL
+                  SELECT id, 'interest' AS kind, reference, guest, email, property AS subject,
+                         COALESCE(movein, '') AS movein, message, created_at FROM interests
+                ) ORDER BY created_at DESC, kind DESC, id DESC LIMIT 101 OFFSET ?
+            ''', (offset,))
+        response = jsonify(messages=records[:100], next_offset=offset + 100 if len(records) > 100 else None)
+        response.headers['Cache-Control'] = 'no-store'
+        return response
 
     @app.get('/api/staff/proformas/<reference>')
     def read_proforma(reference):
@@ -456,7 +513,7 @@ def create_app(database=DEFAULT_DB, key_path=None):
                         if core.room_conflict(cx, room_number, booking['checkin'], booking['checkout'], booking_id):
                             raise ValueError('That room is already assigned for overlapping dates')
                         cx.execute("UPDATE bookings SET room_number=? WHERE id=?", (room_number, booking_id))
-                    record = core.transition(cx, booking_id, payload['action'], s['username'])
+                    record = core.transition(cx, booking_id, payload['action'], s['username'], payload.get('early_checkin_confirmed'))
                 elif route in ('task/create', 'maintenance/create'):
                     title, room = core.clean(payload.get('title'), 120), core.clean(payload.get('room'), 32)
                     if not title or not room:
@@ -477,12 +534,18 @@ def create_app(database=DEFAULT_DB, key_path=None):
                     state = payload.get('status')
                     if state not in valid:
                         raise ValueError('Invalid status')
-                    query = "UPDATE tasks SET status=? WHERE id=? AND property='MIAGUE'" if table == 'tasks' else "UPDATE maintenance SET status=? WHERE id=? AND property='MIAGUE'"
-                    cur = cx.execute(query, (state, int(payload['id'])))
-                    if not cur.rowcount:
-                        raise LookupError('Record not found')
                     query = 'SELECT * FROM tasks WHERE id=?' if table == 'tasks' else 'SELECT * FROM maintenance WHERE id=?'
-                    record = core.one(cx, query, (int(payload['id']),))
+                    record_id = int(payload['id'])
+                    record = core.one(cx, query, (record_id,))
+                    if not record or record['property'] != 'MIAGUE':
+                        raise LookupError('Record not found')
+                    transitions = {'open': 'in_progress', 'in_progress': 'done' if table == 'tasks' else 'resolved'}
+                    if transitions.get(record['status']) != state:
+                        raise ValueError('Invalid status transition')
+                    query = "UPDATE tasks SET status=? WHERE id=? AND property='MIAGUE'" if table == 'tasks' else "UPDATE maintenance SET status=? WHERE id=? AND property='MIAGUE'"
+                    cx.execute(query, (state, record_id))
+                    query = 'SELECT * FROM tasks WHERE id=?' if table == 'tasks' else 'SELECT * FROM maintenance WHERE id=?'
+                    record = core.one(cx, query, (record_id,))
                 elif route == 'folio/charge':
                     amount, bid, label = int(payload['amount_xaf']), int(payload['booking_id']), core.clean(payload.get('label'), 110)
                     if not 0 < amount <= 5000000 or not label:
@@ -501,7 +564,7 @@ def create_app(database=DEFAULT_DB, key_path=None):
                 else:
                     a, b, reason = payload['checkin'], payload['checkout'], core.clean(payload.get('reason'), 120)
                     core.nights(a, b)
-                    if len(reason) < 4 or core.pricing_occupied(cx, a, b):
+                    if len(reason) < 4 or cx.execute("SELECT 1 FROM bookings WHERE property='MIAGUE' AND status IN ('pending','confirmed','checked_in') AND checkin<? AND checkout>? LIMIT 1", (b, a)).fetchone():
                         raise ValueError('Valid reason and unoccupied dates required')
                     cur = cx.execute('INSERT INTO inventory_blocks(from_date,to_date,reason,created_at) VALUES(?,?,?,?)', (a, b, reason, core.utcnow()))
                     record = {'id':cur.lastrowid}

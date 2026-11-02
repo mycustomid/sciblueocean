@@ -17,7 +17,7 @@ async function loadRoomCatalog(){
  function display(){const room=rooms.find(x=>x.room_number===select.value);if(!room)return;name.value=room.display_name;message.textContent=''}
  select.addEventListener('change',display);display();
  form.addEventListener('submit',async event=>{event.preventDefault();const button=form.querySelector('button');button.disabled=true;try{
-  const room=await api('/rooms/catalog',{room_number:select.value,display_name:name.value});
+  const {room}=await api('/rooms/catalog',{room_number:select.value,display_name:name.value});
   rooms=rooms.map(r=>r.room_number===room.room_number?room:r);message.textContent='Nom de chambre enregistré.';
  }catch(error){message.textContent=error.message}finally{button.disabled=false}});
 }

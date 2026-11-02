@@ -53,16 +53,41 @@ def occupied(cx, checkin, checkout, excluded=None):
     return available_rooms(cx, checkin, checkout, excluded) <= 0
 
 
+def any_booking_overlap(cx, checkin, checkout):
+    """Whether a global block would overlap any active reservation."""
+    return bool(cx.execute('''SELECT 1 FROM bookings WHERE property='MIAGUE'
+        AND status IN ('pending','confirmed','checked_in')
+        AND checkin<? AND checkout>? LIMIT 1''', (checkout, checkin)).fetchone())
+
+
 def available_rooms(cx, checkin, checkout, excluded=None):
-    """Count Miague rooms held by pending or occupied by confirmed/in-house stays."""
-    q = '''SELECT COUNT(*) FROM bookings WHERE property='MIAGUE'
+    """Rooms available for the whole stay, conservatively accounting for holds.
+
+    Assigned rooms are unavailable if used at any point in the interval. For
+    unassigned holds, reserve the maximum simultaneous count, allowing holds
+    on consecutive nights to share the same eventual room allocation.
+    """
+    q = '''SELECT checkin,checkout,room_number FROM bookings WHERE property='MIAGUE'
         AND status IN ('pending','confirmed','checked_in') AND checkin<? AND checkout>?'''
     args = [checkout, checkin]
     if excluded is not None:
         q += ' AND id<>?'
         args.append(excluded)
-    occupied_count = int(cx.execute(q, args).fetchone()[0])
-    return max(0, MIAGUE_ROOM_COUNT - occupied_count)
+    assigned = set()
+    events = {}
+    for start, end, room in cx.execute(q, args):
+        if room:
+            assigned.add(room)
+        else:
+            start = max(start, checkin)
+            end = min(end, checkout)
+            events[start] = events.get(start, 0) + 1
+            events[end] = events.get(end, 0) - 1
+    active = peak = 0
+    for day in sorted(events):
+        active += events[day]
+        peak = max(peak, active)
+    return max(0, MIAGUE_ROOM_COUNT - len(assigned) - peak)
 
 
 def price_quote(cx, checkin, checkout, guests=1, property_id='miague', today=None):

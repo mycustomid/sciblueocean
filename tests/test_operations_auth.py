@@ -70,7 +70,7 @@ class OperationsAuth(unittest.TestCase):
             self.assertEqual(cx.execute('SELECT count(*) FROM bookings').fetchone()[0], 0)
             self.assertEqual(cx.execute('SELECT count(*) FROM tasks').fetchone()[0], 0)
         a, b = date.today()+timedelta(days=30), date.today()+timedelta(days=32)
-        guest = self.post('/api/booking/public/request', {'property':'miague','guest':'Security QA Guest','email':'qa@example.test','checkin':a.isoformat(),'checkout':b.isoformat(),'guests':2})
+        guest = self.post('/api/booking/public/request', {'property':'miague','guest':'Security QA Guest','email':'qa@example.test','phone':'+237600000000','checkin':a.isoformat(),'checkout':b.isoformat(),'guests':2})
         self.assertEqual(guest.status_code, 201, guest.get_json())
         ref = guest.get_json()['reference']
         csrf = self.authenticate()
@@ -79,7 +79,7 @@ class OperationsAuth(unittest.TestCase):
         booking = next(x for x in snap.get_json()['bookings'] if x['reference']==ref)
         self.assertEqual(booking['status'], 'pending')
         self.assertEqual(self.post('/api/staff/booking/transition', {'id':booking['id'],'action':'confirm'}).status_code, 403)
-        confirmed = self.post('/api/staff/booking/transition', {'id':booking['id'],'action':'confirm'}, csrf=csrf)
+        confirmed = self.post('/api/staff/booking/transition', {'id':booking['id'],'action':'confirm','room_number':'MIAGUE-01'}, csrf=csrf)
         self.assertEqual(confirmed.status_code, 200, confirmed.get_json())
         with closing(sqlite3.connect(self.db)) as cx:
             self.assertEqual(cx.execute('SELECT status FROM bookings WHERE reference=?',(ref,)).fetchone()[0], 'confirmed')
@@ -167,11 +167,11 @@ class OperationsAuth(unittest.TestCase):
         a, b = date.today()+timedelta(days=44), date.today()+timedelta(days=46)
         guest_email = 'private-guest@example.test'
         guest_name = 'Private Guest Identity'
-        guest = self.post('/api/booking/public/request', {'property':'miague','guest':guest_name,'email':guest_email,'checkin':a.isoformat(),'checkout':b.isoformat(),'guests':2})
+        guest = self.post('/api/booking/public/request', {'property':'miague','guest':guest_name,'email':guest_email,'phone':'+237600000000','checkin':a.isoformat(),'checkout':b.isoformat(),'guests':2})
         self.assertEqual(guest.status_code, 201)
         manager_csrf = self.authenticate()
         booking = self.client.get('/api/staff/snapshot').get_json()['bookings'][0]
-        self.assertEqual(self.post('/api/staff/booking/transition', {'id':booking['id'],'action':'confirm'}, csrf=manager_csrf).status_code, 200)
+        self.assertEqual(self.post('/api/staff/booking/transition', {'id':booking['id'],'action':'confirm','room_number':'MIAGUE-01'}, csrf=manager_csrf).status_code, 200)
         charge = self.post('/api/staff/folio/charge', {'booking_id':booking['id'],'label':'Authorized charge','amount_xaf':95000}, csrf=manager_csrf)
         self.assertEqual(charge.status_code, 200, charge.get_json())
         self.assertGreater(self.client.get('/api/staff/snapshot').get_json()['metrics']['billed'], 0)
@@ -303,13 +303,13 @@ class OperationsAuth(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             me = client.get('/api/staff/me').get_json()
             self.assertEqual(me['role'], role)
-            self.assertEqual(me['property'], 'MIAGUE')
+            self.assertEqual(me['property'], 'ALL' if role == 'owner' else 'MIAGUE')
         with self.assertRaises(ValueError):
             self.provision('multi-role-test', 'manager,finance')
 
     def test_guest_request_retry_is_idempotent_and_payload_reuse_conflicts(self):
         a, b = date.today()+timedelta(days=55), date.today()+timedelta(days=57)
-        payload = {'property':'miague','guest':'Retry Guest','email':'retry@example.test','checkin':a.isoformat(),'checkout':b.isoformat(),'guests':2,'request_id':secrets.token_urlsafe(24).replace('-', '_')}
+        payload = {'property':'miague','guest':'Retry Guest','email':'retry@example.test','phone':'+237600000000','checkin':a.isoformat(),'checkout':b.isoformat(),'guests':2,'request_id':secrets.token_urlsafe(24).replace('-', '_')}
         first = self.post('/api/booking/public/request', payload)
         self.assertEqual(first.status_code, 201, first.get_json())
         repeated = self.post('/api/booking/public/request', payload)

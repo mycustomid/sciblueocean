@@ -1,0 +1,8 @@
+.guest-inbox { margin-top: 24px; }
+.guest-inbox .panel-heading { flex-wrap: wrap; gap: 14px; }
+.guest-inbox-list { display: grid; gap: 12px; }
+.guest-inbox-item { border: 1px solid #d4dedb; padding: 16px; overflow-wrap: anywhere; }
+.guest-inbox-item p { margin: 8px 0; }
+.guest-inbox-message { white-space: pre-wrap; }
+.guest-inbox-top, .guest-inbox-nav { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.guest-inbox-nav { justify-content: flex-start; margin-top: 16px; }

@@ -14,23 +14,36 @@ def migrate(cx):
 def create(cx, booking_id, discount_percent, actor, now):
     if isinstance(booking_id, bool) or not isinstance(booking_id, int) or booking_id < 1:
         raise ValueError('Invalid booking')
-    if isinstance(discount_percent, bool) or not isinstance(discount_percent, int) or discount_percent not in (0, *range(5, 21)):
-        raise ValueError('Discount must be 0 or between 5 and 20 percent')
-    row = cx.execute("SELECT id,reference,guest,email,checkin,checkout,guests,nights,estimate_xaf,status,room_number FROM bookings WHERE id=? AND property='MIAGUE'", (booking_id,)).fetchone()
+    row = cx.execute("SELECT id,reference,guest,email,checkin,checkout,guests,nights,estimate_xaf,subtotal_xaf,original_estimate_xaf,discount_percent,discount_xaf,status,room_number FROM bookings WHERE id=? AND property='MIAGUE'", (booking_id,)).fetchone()
     if not row or row['status'] == 'cancelled':
         raise LookupError('Booking not found or cancelled')
     booking = dict(row)
-    base = int(booking['estimate_xaf'])
-    if base < 0:
+    net = int(booking['estimate_xaf'])
+    applied_pct = booking['discount_percent']
+    discount = booking['discount_xaf']
+    original = booking['original_estimate_xaf']
+    if discount_percent is not None and (isinstance(discount_percent, bool) or not isinstance(discount_percent, int) or discount_percent != applied_pct):
+        raise ValueError('Appliquez d’abord la remise à la réservation avant de créer le pro forma.')
+    if net < 0 or applied_pct not in (0, *range(5, 21)):
         raise ValueError('Invalid stored estimate')
+    if original is None:
+        if applied_pct != 0 or discount != 0:
+            raise ValueError('Invalid stored discount')
+        original = net
+    subtotal = booking['subtotal_xaf']
+    if subtotal is not None and (not isinstance(subtotal, int) or subtotal < 0 or subtotal > original):
+        raise ValueError('Invalid accommodation subtotal')
+    if applied_pct and subtotal is None:
+        raise ValueError('Sous-total hébergement indisponible pour cette réservation ; remise impossible.')
+    if discount != ((subtotal or 0) * applied_pct + 50) // 100 or net != original - discount:
+        raise ValueError('Montant ou remise enregistrée incohérents.')
     charges = [dict(r) for r in cx.execute('SELECT label,amount_xaf FROM charges WHERE booking_id=? ORDER BY id', (booking_id,))]
     extra = sum(int(item['amount_xaf']) for item in charges)
-    discount = (base * discount_percent + 50) // 100
     reference = 'PF-' + secrets.token_hex(8).upper()
-    record = {'reference':reference, 'created_at':now, 'booking':booking, 'discount_percent':discount_percent,
-              'estimate_xaf':base, 'discount_xaf':discount, 'charges':charges,
-              'charges_xaf':extra, 'total_xaf':base-discount+extra,
-              'notice':'Pro forma indicative, hors taxes non configurées. La remise ne modifie ni la réservation ni le montant du paiement. Ce document ne confirme aucun paiement et ne constitue pas une facture fiscale.'}
+    record = {'reference':reference, 'created_at':now, 'booking':booking, 'discount_percent':applied_pct,
+              'estimate_xaf':original, 'subtotal_xaf':subtotal, 'discount_xaf':discount, 'charges':charges,
+              'charges_xaf':extra, 'total_xaf':net+extra,
+              'notice':'Pro forma indicative, hors taxes non configurées. La remise affichée est déjà enregistrée sur la réservation. Ce document ne confirme aucun paiement et ne constitue pas une facture fiscale.'}
     cx.execute('INSERT INTO proformas(reference,booking_id,created_at,created_by,snapshot) VALUES(?,?,?,?,?)',
                (reference, booking_id, now, actor, json.dumps(record, ensure_ascii=False)))
     cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES(?,?,?,?,?)',

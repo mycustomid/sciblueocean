@@ -14,6 +14,7 @@ import sqlite3
 import sys
 import threading
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -24,7 +25,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE.parent/'integrations'/'payments'))
 from flutterwave_hosted import HostedCheckout, CheckoutOrder, CheckoutError, verify_webhook_hash_v3
 from settlement import reconcile_verified, PaymentMismatch
-from pricing import migrate as pricing_migrate, price_quote, blocked as pricing_blocked, occupied as pricing_occupied, available_rooms as pricing_available_rooms, MIAGUE_ROOM_COUNT
+from pricing import migrate as pricing_migrate, price_quote, blocked as pricing_blocked, occupied as pricing_occupied, any_booking_overlap as pricing_any_booking_overlap, available_rooms as pricing_available_rooms, MIAGUE_ROOM_COUNT
 STATIC = (HERE.parent / 'public') if (HERE.parent / 'public' / 'experience').exists() else (HERE.parent / 'patch' / 'public')
 DB_DEFAULT = HERE / 'demo.sqlite3'
 DEMO_PASSWORD = os.environ.get('BLUE_OCEAN_DEMO_PASSWORD', 'demo-only-change-me')
@@ -55,7 +56,13 @@ SESSIONS = {} # memory-only, expiry on each read; invalidated on restart
 SESS_LOCK = threading.RLock()
 
 
-def iso_today(): return date.today().isoformat()
+try:
+ DOUALA_TZ=ZoneInfo('Africa/Douala')
+except ZoneInfoNotFoundError:
+ # Windows may not include IANA tzdata; Cameroon observes UTC+01:00.
+ DOUALA_TZ=timezone(timedelta(hours=1))
+
+def iso_today(): return datetime.now(DOUALA_TZ).date().isoformat()
 def utcnow(): return datetime.now(timezone.utc).isoformat(timespec='seconds')
 def json_body(handler):
  length = int(handler.headers.get('content-length', '0'))
@@ -120,6 +127,14 @@ def init_db(path):
    cx.execute("ALTER TABLE bookings ADD COLUMN identity_type TEXT NOT NULL DEFAULT ''")
   if 'identity_number' not in booking_columns:
    cx.execute("ALTER TABLE bookings ADD COLUMN identity_number TEXT NOT NULL DEFAULT ''")
+  if 'subtotal_xaf' not in booking_columns:
+   cx.execute("ALTER TABLE bookings ADD COLUMN subtotal_xaf INTEGER")
+  if 'discount_percent' not in booking_columns:
+   cx.execute("ALTER TABLE bookings ADD COLUMN discount_percent INTEGER NOT NULL DEFAULT 0")
+  if 'discount_xaf' not in booking_columns:
+   cx.execute("ALTER TABLE bookings ADD COLUMN discount_xaf INTEGER NOT NULL DEFAULT 0")
+  if 'original_estimate_xaf' not in booking_columns:
+   cx.execute("ALTER TABLE bookings ADD COLUMN original_estimate_xaf INTEGER")
   pricing_migrate(cx)
   if 'checkout_url' not in [row[1] for row in cx.execute('PRAGMA table_info(payment_intents)')]:
    cx.execute("ALTER TABLE payment_intents ADD COLUMN checkout_url TEXT DEFAULT ''")
@@ -158,25 +173,28 @@ def create_booking(cx, payload, actor='guest'):
  identity_number=clean(payload.get('identity_number'),100) if actor != 'guest' else ''
  if (identity_type or identity_number) and (identity_type not in ('CNI','PASSPORT') or not identity_number):raise ValueError('Valid identity document type and number are required')
  ref='BO-'+secrets.token_hex(4).upper();now=utcnow()
- cx.execute('''INSERT INTO bookings(reference,guest,email,phone,checkin,checkout,guests,nights,estimate_xaf,created_at,updated_at,identity_type,identity_number)
- VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)''',(ref,guest,email,phone,a,b,guests,n,quote['total_estimate_xaf'],now,now,identity_type,identity_number))
+ cx.execute('''INSERT INTO bookings(reference,guest,email,phone,checkin,checkout,guests,nights,estimate_xaf,created_at,updated_at,identity_type,identity_number,subtotal_xaf)
+ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(ref,guest,email,phone,a,b,guests,n,quote['total_estimate_xaf'],now,now,identity_type,identity_number,quote['subtotal_xaf']))
  cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES (?,?,?,?,?)',(actor,'booking:create','booking',ref,now))
  return one(cx,'SELECT * FROM bookings WHERE reference=?',(ref,))
 
-def transition(cx,id,action,actor):
+def transition(cx,id,action,actor,early_checkin_confirmed=False):
  item=one(cx,'SELECT * FROM bookings WHERE id=? AND property=?',(id,'MIAGUE'))
  if not item:raise LookupError('Reservation not found')
  table={'confirm':('pending','confirmed'),'cancel':('pending','cancelled'),'checkin':('confirmed','checked_in'),'checkout':('checked_in','checked_out')}
  if action not in table:raise ValueError('Unknown transition')
  before,after=table[action]
  if item['status']!=before:raise ValueError(f'Cannot {action} from {item["status"]}')
+ early=action=='checkin' and item['checkin']>iso_today()
+ if early and early_checkin_confirmed is not True:raise ValueError('Early check-in requires explicit confirmation')
  if action=='confirm' and conflict(cx,item['checkin'],item['checkout'],id):raise ValueError('Confirmed stay overlaps an existing booking')
  cx.execute('UPDATE bookings SET status=?,updated_at=? WHERE id=?',(after,utcnow(),id))
  cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES (?,?,?,?,?)',(actor,'booking:'+action,'booking',item['reference'],utcnow()))
+ if early:cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES (?,?,?,?,?)',(actor,'booking:early_checkin_confirmed','booking',item['reference'],utcnow()))
  return one(cx,'SELECT * FROM bookings WHERE id=?',(id,))
 
 def snapshot(cx,role):
- bookings=rows(cx,"SELECT id,reference,property,guest,email,phone,checkin,checkout,guests,nights,estimate_xaf,status,room_number,created_at FROM bookings WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
+ bookings=rows(cx,"SELECT id,reference,property,guest,email,phone,checkin,checkout,guests,nights,estimate_xaf,discount_percent,discount_xaf,status,room_number,created_at FROM bookings WHERE property='MIAGUE' ORDER BY id DESC")
  if role in ('reception','manager'):
   identities={row['id']: row for row in rows(cx, "SELECT id,identity_type,identity_number FROM bookings WHERE property='MIAGUE'")}
   for booking in bookings:
@@ -187,8 +205,8 @@ def snapshot(cx,role):
    blocked=pricing_blocked(cx,booking['checkin'],booking['checkout'])
    booking['available_room_numbers']=[] if blocked else [f'MIAGUE-{n:02d}' for n in range(1,MIAGUE_ROOM_COUNT+1) if f'MIAGUE-{n:02d}' not in occupied]
   else: booking['available_room_numbers']=[]
- tasks=rows(cx,"SELECT * FROM tasks WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
- m=rows(cx,"SELECT * FROM maintenance WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
+ tasks=rows(cx,"SELECT * FROM tasks WHERE property='MIAGUE' ORDER BY id DESC")
+ m=rows(cx,"SELECT * FROM maintenance WHERE property='MIAGUE' ORDER BY id DESC")
  charges=rows(cx,"SELECT c.*,b.reference,b.status booking_status FROM charges c JOIN bookings b ON b.id=c.booking_id WHERE b.property='MIAGUE' ORDER BY c.id DESC")
  payments=rows(cx,"SELECT p.external_reference,p.amount_xaf,p.currency,p.state,p.provider_transaction_id,b.reference booking_reference FROM payment_intents p JOIN bookings b ON b.id=p.booking_id WHERE b.property='MIAGUE' ORDER BY p.id DESC") if role in ('manager','finance') else []
  today=iso_today()
@@ -215,7 +233,10 @@ def snapshot(cx,role):
   bookings=[{k:v for k,v in b.items() if k!='phone'} for b in bookings]
  if role=='reception':charges=[]
  calendar_bookings=rows(cx, "SELECT checkin,checkout,status,room_number FROM bookings WHERE property='MIAGUE' AND status IN ('pending','confirmed','checked_in','checked_out')") if role in ('reception','manager') else []
- return dict(bookings=bookings,calendar_bookings=calendar_bookings,tasks=tasks,maintenance=m,charges=charges,payments=payments,metrics=metrics,
+ calendar_blocks=rows(cx, "SELECT from_date,to_date FROM inventory_blocks") if role in ('reception','manager') else []
+ report_daily=rows(cx, "SELECT substr(created_at,1,10) AS day,COUNT(*) AS count FROM bookings WHERE property='MIAGUE' GROUP BY substr(created_at,1,10) ORDER BY day DESC LIMIT 12") if role in ('owner','manager','finance') else []
+ report_daily.reverse()
+ return dict(bookings=bookings,calendar_bookings=calendar_bookings,calendar_blocks=calendar_blocks,report_daily=report_daily,today=today,tasks=tasks,maintenance=m,charges=charges,payments=payments,metrics=metrics,
   simulated_settlement_enabled=os.environ.get('BLUE_OCEAN_ENABLE_SIMULATED_SETTLEMENT')=='YES',
   demo=True,payment='DISABLED',upstream_pms='NOT_CONNECTED',currency='XAF')
 
@@ -454,7 +475,7 @@ class Handler(SimpleHTTPRequestHandler):
      out={'id':day,'rate_xaf':rate,'reason':reason}
     elif p=='/api/demo/inventory/block':
      a=clean(body.get('checkin'),10);b=clean(body.get('checkout'),10);nights(a,b)
-     if pricing_occupied(cx,a,b):raise ValueError('Cannot block dates with an already confirmed guest')
+     if pricing_any_booking_overlap(cx,a,b):raise ValueError('Cannot block dates with an existing reservation')
      reason=clean(body.get('reason'),120)
      if len(reason)<4:raise ValueError('A meaningful reason is required')
      cur=cx.execute('INSERT INTO inventory_blocks(from_date,to_date,reason,created_at) VALUES(?,?,?,?)',(a,b,reason,utcnow()))
@@ -462,7 +483,7 @@ class Handler(SimpleHTTPRequestHandler):
     elif p=='/api/demo/booking/create':out=create_booking(cx,body,s['role'])
     elif p=='/api/demo/booking/transition':
      bid=int(body.get('id'));act=clean(body.get('action'),12)
-     out=transition(cx,bid,act,s['role'])
+     out=transition(cx,bid,act,s['role'],body.get('early_checkin_confirmed'))
     elif p=='/api/demo/task/create':
      title=clean(body.get('title'),120);room=clean(body.get('room'),32)
      if not title or not room:raise ValueError('Title and room required')
