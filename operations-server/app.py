@@ -21,6 +21,8 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError, InvalidHashError
 from flask import Flask, jsonify, request, redirect, send_from_directory
 from prepare_ui import render_html
+import invoices
+import room_catalog
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'demo-server'))
@@ -72,6 +74,13 @@ def initialize(path, key_path=None):
             cx.execute('DELETE FROM tasks')
         if 'room_number' not in [row['name'] for row in cx.execute('PRAGMA table_info(bookings)')]:
             cx.execute("ALTER TABLE bookings ADD COLUMN room_number TEXT NOT NULL DEFAULT ''")
+        booking_columns = {row['name'] for row in cx.execute('PRAGMA table_info(bookings)')}
+        if 'identity_type' not in booking_columns:
+            cx.execute("ALTER TABLE bookings ADD COLUMN identity_type TEXT NOT NULL DEFAULT ''")
+        if 'identity_number' not in booking_columns:
+            cx.execute("ALTER TABLE bookings ADD COLUMN identity_number TEXT NOT NULL DEFAULT ''")
+        invoices.migrate(cx)
+        room_catalog.migrate(cx)
         cx.executescript('''
         CREATE TABLE IF NOT EXISTS staff_users (
           id INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL,
@@ -329,6 +338,38 @@ def create_app(database=DEFAULT_DB, key_path=None):
             return error
         return jsonify(username=s['username'], role=s['role'], property='MIAGUE', views=views_for(s['role']), csrf=s['csrf'], mode='OPERATIONS_LOCAL')
 
+    @app.post('/api/staff/proformas')
+    def create_proforma():
+        s, error = guard()
+        if error:
+            return error
+        if s['role'] not in ('reception', 'manager', 'finance'):
+            return jsonify(error='Access denied'), 403
+        try:
+            payload = body()
+            with db(path) as cx:
+                cx.execute('BEGIN IMMEDIATE')
+                record = invoices.create(cx, payload.get('booking_id'), payload.get('discount_percent'), s['username'], core.utcnow())
+            return jsonify(record=record), 201
+        except LookupError as exc:
+            return jsonify(error=str(exc)), 404
+        except (TypeError, ValueError) as exc:
+            return jsonify(error=str(exc)), 400
+
+    @app.get('/api/staff/proformas/<reference>')
+    def read_proforma(reference):
+        s, error = guard()
+        if error:
+            return error
+        if s['role'] not in ('reception', 'manager', 'finance'):
+            return jsonify(error='Access denied'), 403
+        try:
+            with db(path) as cx:
+                record = invoices.get(cx, reference)
+            return jsonify(record=record)
+        except LookupError as exc:
+            return jsonify(error=str(exc)), 404
+
     @app.post('/api/staff/logout')
     def logout():
         s = session(full=False)
@@ -350,12 +391,31 @@ def create_app(database=DEFAULT_DB, key_path=None):
             return error
         with db(path) as cx:
             out = core.snapshot(cx, s['role'])
+            if s['role'] in ('reception', 'manager'):
+                out['rooms'] = room_catalog.list_rooms(cx)
         if s['role'] not in ('manager', 'finance', 'owner'):
             for key in ('billed', 'settled', 'revenue', 'folios_open'):
                 out['metrics'].pop(key, None)
         out.pop('demo', None)
         out.update(mode='OPERATIONS_LOCAL', simulated_settlement_enabled=False, payment='DISABLED', upstream_pms='LOCAL_DATABASE')
         return jsonify(out)
+
+    @app.route('/api/staff/rooms/catalog', methods=['GET', 'POST'])
+    def rooms_catalog():
+        s, error = guard()
+        if error:
+            return error
+        if s['role'] != 'manager':
+            return jsonify(error='Access denied'), 403
+        try:
+            with db(path) as cx:
+                if request.method == 'GET':
+                    return jsonify(rooms=room_catalog.list_rooms(cx))
+                cx.execute('BEGIN IMMEDIATE')
+                result = room_catalog.write_room(cx, body(), s['username'])
+            return jsonify(room=result)
+        except (TypeError, ValueError) as exc:
+            return jsonify(error=str(exc)), 400
 
     @app.get('/api/staff/analytics/summary')
     def analytics():

@@ -1,0 +1,5 @@
+.calendar-day-button { width: 100%; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+.calendar-day-button:hover { filter: brightness(.95); }
+.calendar-day-button:focus-visible { outline: 3px solid #244f46; outline-offset: 2px; }
+.calendar-detail ul { padding-left: 1.3rem; line-height: 1.9; }
+.calendar-unassigned { margin-top: 1rem; }

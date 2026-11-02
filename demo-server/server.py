@@ -115,6 +115,11 @@ def init_db(path):
   ''')
   if 'room_number' not in [row[1] for row in cx.execute('PRAGMA table_info(bookings)')]:
    cx.execute("ALTER TABLE bookings ADD COLUMN room_number TEXT NOT NULL DEFAULT ''")
+  booking_columns = {row[1] for row in cx.execute('PRAGMA table_info(bookings)')}
+  if 'identity_type' not in booking_columns:
+   cx.execute("ALTER TABLE bookings ADD COLUMN identity_type TEXT NOT NULL DEFAULT ''")
+  if 'identity_number' not in booking_columns:
+   cx.execute("ALTER TABLE bookings ADD COLUMN identity_number TEXT NOT NULL DEFAULT ''")
   pricing_migrate(cx)
   if 'checkout_url' not in [row[1] for row in cx.execute('PRAGMA table_info(payment_intents)')]:
    cx.execute("ALTER TABLE payment_intents ADD COLUMN checkout_url TEXT DEFAULT ''")
@@ -148,9 +153,13 @@ def create_booking(cx, payload, actor='guest'):
  if not 1<=guests<=6:raise ValueError('Guests must be between 1 and 6')
  quote=price_quote(cx,a,b,guests)
  if not quote['available']:raise ValueError('Dates unavailable in demo inventory')
- phone=clean(payload.get('phone'),32);ref='BO-'+secrets.token_hex(4).upper();now=utcnow()
- cx.execute('''INSERT INTO bookings(reference,guest,email,phone,checkin,checkout,guests,nights,estimate_xaf,created_at,updated_at)
- VALUES(?,?,?,?,?,?,?,?,?,?,?)''',(ref,guest,email,phone,a,b,guests,n,quote['total_estimate_xaf'],now,now))
+ phone=clean(payload.get('phone'),32)
+ identity_type=clean(payload.get('identity_type'),16) if actor != 'guest' else ''
+ identity_number=clean(payload.get('identity_number'),100) if actor != 'guest' else ''
+ if (identity_type or identity_number) and (identity_type not in ('CNI','PASSPORT') or not identity_number):raise ValueError('Valid identity document type and number are required')
+ ref='BO-'+secrets.token_hex(4).upper();now=utcnow()
+ cx.execute('''INSERT INTO bookings(reference,guest,email,phone,checkin,checkout,guests,nights,estimate_xaf,created_at,updated_at,identity_type,identity_number)
+ VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)''',(ref,guest,email,phone,a,b,guests,n,quote['total_estimate_xaf'],now,now,identity_type,identity_number))
  cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES (?,?,?,?,?)',(actor,'booking:create','booking',ref,now))
  return one(cx,'SELECT * FROM bookings WHERE reference=?',(ref,))
 
@@ -168,6 +177,10 @@ def transition(cx,id,action,actor):
 
 def snapshot(cx,role):
  bookings=rows(cx,"SELECT id,reference,property,guest,email,phone,checkin,checkout,guests,nights,estimate_xaf,status,room_number,created_at FROM bookings WHERE property='MIAGUE' ORDER BY id DESC LIMIT 200")
+ if role in ('reception','manager'):
+  identities={row['id']: row for row in rows(cx, "SELECT id,identity_type,identity_number FROM bookings WHERE property='MIAGUE'")}
+  for booking in bookings:
+   booking.update(identities.get(booking['id'], {}))
  for booking in bookings:
   if booking['status']=='pending':
    occupied= {r[0] for r in cx.execute("SELECT room_number FROM bookings WHERE property='MIAGUE' AND status IN ('confirmed','checked_in') AND checkin<? AND checkout>? AND room_number<>''",(booking['checkout'],booking['checkin']))}
@@ -201,7 +214,8 @@ def snapshot(cx,role):
   tasks=[];m=[]
   bookings=[{k:v for k,v in b.items() if k!='phone'} for b in bookings]
  if role=='reception':charges=[]
- return dict(bookings=bookings,tasks=tasks,maintenance=m,charges=charges,payments=payments,metrics=metrics,
+ calendar_bookings=rows(cx, "SELECT checkin,checkout,status,room_number FROM bookings WHERE property='MIAGUE' AND status IN ('pending','confirmed','checked_in','checked_out')") if role in ('reception','manager') else []
+ return dict(bookings=bookings,calendar_bookings=calendar_bookings,tasks=tasks,maintenance=m,charges=charges,payments=payments,metrics=metrics,
   simulated_settlement_enabled=os.environ.get('BLUE_OCEAN_ENABLE_SIMULATED_SETTLEMENT')=='YES',
   demo=True,payment='DISABLED',upstream_pms='NOT_CONNECTED',currency='XAF')
 

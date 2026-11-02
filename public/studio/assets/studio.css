@@ -1281,3 +1281,9 @@ tr:last-child td {
     }
 }
 .room-assignment{display:grid;gap:6px;min-width:150px}.room-assignment select{max-width:100%;min-height:34px;border:1px solid #c7d5ce;border-radius:6px;background:#fff;padding:4px 7px;color:#173639}.room-assignment+.cell-action{margin-top:4px}
+
+/* Document selection in the reception booking form. */
+.stack-form .identity-options { border:0; padding:0; margin:0; display:flex; gap:24px; }
+.stack-form .identity-options legend { color:#58716e; font-size:11px; font-weight:650; margin-bottom:8px; }
+.stack-form .identity-options label { flex-direction:row; align-items:center; gap:8px; }
+.stack-form .identity-options input[type=radio] { width:16px; min-height:16px; height:16px; padding:0; margin:0; }
