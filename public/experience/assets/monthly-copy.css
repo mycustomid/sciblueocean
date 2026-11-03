@@ -1,0 +1,15 @@
+.longstay-copy { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(2rem,5vw,5rem); }
+.longstay-copy h2,.longstay-intro h2 { margin-bottom:1.25rem; }
+.longstay-copy p,.longstay-intro p { margin:0 0 1rem; line-height:1.7; }
+.longstay-copy ul { padding-left:1.3rem; margin:1.25rem 0 0; }
+.longstay-copy li { padding-left:.25rem; margin-bottom:.65rem; line-height:1.6; }
+.longstay-intro { max-width:80rem; }
+.longstay-intro p { max-width:52rem; }
+@media (max-width:760px) { .longstay-copy { grid-template-columns:1fr; } }
+
+.inner-hero p, .longstay-copy p, .longstay-copy li, .longstay-intro p { color:#354c46; }
+.eyebrow, .brand small, .desktop-nav .current { color:#705322; }
+.section-heading p, .property-copy p, .property-place, .price small, .monthly-steps b, .guest-form .quiet { color:#354c46; }
+.property-flag.planned { color:#533d1b; background:#f5ead5; }
+.interest-block .guest-form p.quiet { color:#354c46; }
+.interest-block .guest-form p.quiet { color:#354c46 !important; }
