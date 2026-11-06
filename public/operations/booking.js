@@ -61,6 +61,7 @@
   forms.forEach(form=>{
     const checkin=form.elements.namedItem('checkin'),checkout=form.elements.namedItem('checkout');
     if(!checkin||!checkout)return;
+    checkin.max='2099-12-31';checkout.max='2099-12-31';
     const out=document.createElement('output');out.className='bo-live-quote';out.setAttribute('role','status');out.setAttribute('aria-live','polite');
     out.textContent=i18n.choose;
     const existing=$('[data-stay-quote]');
@@ -91,8 +92,8 @@
       state('checking');controller=new AbortController();
       try{
         const resp=await fetch('/api/booking/public/quote?'+qs({checkin:a,checkout:b,guests,property}),{cache:'no-store',signal:controller.signal});
-        let data;try{data=await resp.json();}catch{throw Error(i18n.service+' (HTTP '+resp.status+')');}if(serial!==counter)return;
-        if(!resp.ok)throw Error((data.error||i18n.service)+' (HTTP '+resp.status+')');
+        let data;try{data=await resp.json();}catch{throw Error(i18n.service);}if(serial!==counter)return;
+        if(!resp.ok)throw Error(window.BOPublicError?.(data.error,resp.status)||data?.message||i18n.service);
         renderQuote(out,data);state(data.available?'available':'unavailable');track('quote_shown');
       }catch(e){if(serial===counter){
         if(e.name==='AbortError')return;

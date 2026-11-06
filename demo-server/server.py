@@ -356,13 +356,13 @@ class Handler(SimpleHTTPRequestHandler):
      result=reconcile_verified(cx,str(transaction_id),key,os.getenv('FLW_CALLBACK_URL',''))
     return self.send_json(200,{'received':True,'verified':True,'state':result['state']})
    except (ValueError,CheckoutError,PaymentMismatch) as e:return self.send_json(409,{'error':str(e)})
+  try:body=json_body(self)
+  except (ValueError,json.JSONDecodeError) as e:return self.send_json(400,{'error':str(e)})
   if p=='/api/demo/logout':
    s=self.user();cookie=self.headers.get('Cookie','');m=re.search(r'bo_demo_session=([a-f0-9]{64})',cookie)
    if m:
     with SESS_LOCK:SESSIONS.pop(m.group(1),None)
    return self.send_json(200,{'ok':True},{'Set-Cookie':'bo_demo_session=; Max-Age=0; HttpOnly; SameSite=Strict; Path=/'})
-  try:body=json_body(self)
-  except (ValueError,json.JSONDecodeError) as e:return self.send_json(400,{'error':str(e)})
   if p=='/api/demo/login':
    name=clean(body.get('user'),30)
    if name not in ROLES or not hmac.compare_digest(str(body.get('password','')),DEMO_PASSWORD):return self.send_json(401,{'error':'Invalid demo credentials'})
@@ -483,6 +483,13 @@ class Handler(SimpleHTTPRequestHandler):
     elif p=='/api/demo/booking/create':out=create_booking(cx,body,s['role'])
     elif p=='/api/demo/booking/transition':
      bid=int(body.get('id'));act=clean(body.get('action'),12)
+     room=clean(body.get('room_number'),20)
+     if act=='confirm' and room:
+      if not re.fullmatch(r'MIAGUE-(?:0[1-9]|1[0-9]|2[0-5])',room):raise ValueError('Choose an available Miague room before confirming')
+      b_rec=one(cx,"SELECT * FROM bookings WHERE id=? AND property='MIAGUE'",(bid,))
+      if not b_rec:raise LookupError('Reservation not found')
+      if room_conflict(cx,room,b_rec['checkin'],b_rec['checkout'],bid):raise ValueError('That room is already assigned for overlapping dates')
+      cx.execute("UPDATE bookings SET room_number=? WHERE id=?",(room,bid))
      out=transition(cx,bid,act,s['role'],body.get('early_checkin_confirmed'))
     elif p=='/api/demo/task/create':
      title=clean(body.get('title'),120);room=clean(body.get('room'),32)
