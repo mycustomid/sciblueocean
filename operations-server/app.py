@@ -36,13 +36,11 @@ VERIFY_SLOTS = threading.BoundedSemaphore(2)
 COOKIE = 'bo_staff_session'
 IDLE = 20 * 60
 ABSOLUTE = 8 * 60 * 60
-SUPPORTED_VIEWS = {'dashboard', 'bookings', 'calendar', 'arrivals', 'guests', 'housekeeping', 'folios', 'payments', 'maintenance', 'reports'}
+SUPPORTED_VIEWS = {'dashboard', 'bookings', 'calendar', 'arrivals', 'guests', 'housekeeping', 'folios', 'payments', 'maintenance', 'reports', 'portfolio', 'companies', 'people', 'settings'}
 
 
 def views_for(role):
-    if role == 'owner':
-        return ['dashboard', 'reports']
-    return sorted(core.VIEWS[role] & SUPPORTED_VIEWS)
+    return sorted(core.VIEWS.get(role, set()) & SUPPORTED_VIEWS)
 
 
 def digest(value):
@@ -448,7 +446,7 @@ def create_app(database=DEFAULT_DB, key_path=None):
             return error
         with db(path) as cx:
             out = core.snapshot(cx, s['role'])
-            if s['role'] in ('reception', 'manager'):
+            if s['role'] in ('reception', 'manager', 'owner'):
                 out['rooms'] = room_catalog.list_rooms(cx)
         if s['role'] not in ('manager', 'finance', 'owner'):
             for key in ('billed', 'settled', 'revenue', 'folios_open'):

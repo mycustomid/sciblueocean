@@ -36,11 +36,11 @@ ROLES = {
 }
 VIEWS = {
  'reception': {'dashboard','bookings','calendar','arrivals','guests','housekeeping','maintenance'},
- 'manager': {'dashboard','bookings','calendar','arrivals','guests','housekeeping','folios','payments','maintenance','reports','portfolio'},
+ 'manager': {'dashboard','bookings','calendar','arrivals','guests','housekeeping','folios','payments','maintenance','reports','portfolio','companies','people','settings'},
  'housekeeping': {'dashboard','housekeeping'},
  'finance': {'dashboard','folios','payments','reports','bookings'},
  'maintenance': {'dashboard','maintenance'},
- 'owner': {'dashboard','portfolio','reports','companies','people','settings'}
+ 'owner': {'dashboard','bookings','calendar','arrivals','guests','housekeeping','folios','payments','maintenance','reports','portfolio','companies','people','settings'}
 }
 ACTION_ROLES = {
  'booking:create': {'reception','manager'},
@@ -72,7 +72,7 @@ def clean(value, maxlen=120): return str(value or '').strip()[:maxlen]
 def nights(a,b):
  try: aa=date.fromisoformat(a);bb=date.fromisoformat(b)
  except (ValueError,TypeError): raise ValueError('Dates must be YYYY-MM-DD')
- if aa < date.today(): raise ValueError('Arrival date must be today or later')
+ if aa < date.fromisoformat(iso_today()): raise ValueError('Arrival date must be today or later')
  n=(bb-aa).days
  if not 1<=n<=180: raise ValueError('Length of stay must be 1–180 nights')
  return n
@@ -187,8 +187,13 @@ def transition(cx,id,action,actor,early_checkin_confirmed=False):
  if item['status']!=before:raise ValueError(f'Cannot {action} from {item["status"]}')
  early=action=='checkin' and item['checkin']>iso_today()
  if early and early_checkin_confirmed is not True:raise ValueError('Early check-in requires explicit confirmation')
+ if early and item.get('room_number') and room_conflict(cx,item['room_number'],iso_today(),item['checkout'],id):
+  raise ValueError('Assigned room is already occupied for early check-in dates')
  if action=='confirm' and conflict(cx,item['checkin'],item['checkout'],id):raise ValueError('Confirmed stay overlaps an existing booking')
- cx.execute('UPDATE bookings SET status=?,updated_at=? WHERE id=?',(after,utcnow(),id))
+ today_str=iso_today()
+ new_checkin=today_str if early else item['checkin']
+ new_nights=max(1,(date.fromisoformat(item['checkout'])-date.fromisoformat(new_checkin)).days) if early else item['nights']
+ cx.execute('UPDATE bookings SET status=?,checkin=?,nights=?,updated_at=? WHERE id=?',(after,new_checkin,new_nights,utcnow(),id))
  cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES (?,?,?,?,?)',(actor,'booking:'+action,'booking',item['reference'],utcnow()))
  if early:cx.execute('INSERT INTO audit(actor,action,entity,reference,created_at) VALUES (?,?,?,?,?)',(actor,'booking:early_checkin_confirmed','booking',item['reference'],utcnow()))
  return one(cx,'SELECT * FROM bookings WHERE id=?',(id,))
@@ -227,13 +232,13 @@ def snapshot(cx,role):
  # Data-minimization for roles without finance and guest details.
  if role=='housekeeping':bookings=[];charges=[];m=[]
  if role=='maintenance':bookings=[];charges=[];tasks=[]
- if role=='owner':bookings=[];charges=[];tasks=[];m=[]
+ if role=='owner':tasks=[];m=[]
  if role=='finance':
   tasks=[];m=[]
   bookings=[{k:v for k,v in b.items() if k!='phone'} for b in bookings]
  if role=='reception':charges=[]
- calendar_bookings=rows(cx, "SELECT checkin,checkout,status,room_number FROM bookings WHERE property='MIAGUE' AND status IN ('pending','confirmed','checked_in','checked_out')") if role in ('reception','manager') else []
- calendar_blocks=rows(cx, "SELECT from_date,to_date FROM inventory_blocks") if role in ('reception','manager') else []
+ calendar_bookings=rows(cx, "SELECT checkin,checkout,status,room_number FROM bookings WHERE property='MIAGUE' AND status IN ('pending','confirmed','checked_in','checked_out')") if role in ('reception','manager','owner') else []
+ calendar_blocks=rows(cx, "SELECT from_date,to_date FROM inventory_blocks") if role in ('reception','manager','owner') else []
  report_daily=rows(cx, "SELECT substr(created_at,1,10) AS day,COUNT(*) AS count FROM bookings WHERE property='MIAGUE' GROUP BY substr(created_at,1,10) ORDER BY day DESC LIMIT 12") if role in ('owner','manager','finance') else []
  report_daily.reverse()
  return dict(bookings=bookings,calendar_bookings=calendar_bookings,calendar_blocks=calendar_blocks,report_daily=report_daily,today=today,tasks=tasks,maintenance=m,charges=charges,payments=payments,metrics=metrics,

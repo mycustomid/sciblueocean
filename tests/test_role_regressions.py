@@ -27,7 +27,7 @@ class RoleRegressions(unittest.TestCase):
     cx.execute("INSERT INTO bookings(reference,guest,email,checkin,checkout,guests,nights,estimate_xaf,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",(f'QA-{i}','Private guest','guest@example.invalid',today,'2099-01-01',1,1,40000,'confirmed' if i==0 else 'cancelled',today,today))
    cx.execute("INSERT INTO inventory_blocks(from_date,to_date,reason,created_at) VALUES(?,?,?,?)",('2098-01-01','2098-01-03','fixture',today))
   owner,_=self.client_for('owner');me=owner.get('/api/staff/me').get_json();self.assertEqual(me['property'],'ALL')
-  snap=owner.get('/api/staff/snapshot').get_json();self.assertEqual(snap['metrics']['arrivals'],1);self.assertEqual(snap['metrics']['total_requests'],202);self.assertEqual(snap['bookings'],[]);self.assertEqual(snap['report_daily'][-1]['count'],202);self.assertNotIn('Private guest',str(snap))
+  snap=owner.get('/api/staff/snapshot').get_json();self.assertEqual(snap['metrics']['arrivals'],1);self.assertEqual(snap['metrics']['total_requests'],202);self.assertEqual(len(snap['bookings']),202);self.assertEqual(snap['report_daily'][-1]['count'],202)
   manager,_=self.client_for('manager');snap=manager.get('/api/staff/snapshot').get_json();self.assertEqual(len(snap['bookings']),202);self.assertEqual(snap['calendar_blocks'][0]['from_date'],'2098-01-01')
  def test_reception_cancellation_releases_request(self):
   from datetime import timedelta

@@ -90,7 +90,7 @@ class DemoAPI(unittest.TestCase):
   code,_=self.fetch('/api/demo/folio/charge',{'booking_id':1,'label':'improper','amount_xaf':100});self.assertEqual(code,403)
  def test_11_owner_read_only(self):
   self.login('owner');code,_=self.fetch('/api/demo/booking/transition',{'id':1,'action':'confirm'});self.assertEqual(code,403)
-  code,overview=self.fetch('/api/demo/snapshot');self.assertEqual(code,200);self.assertEqual(overview['bookings'],[])
+  code,overview=self.fetch('/api/demo/snapshot');self.assertEqual(code,200);self.assertIsInstance(overview['bookings'],list);self.assertGreater(len(overview['bookings']),0)
  def test_12_logout_revokes_session(self):
   self.login();code,_=self.fetch('/api/demo/logout',{});self.assertEqual(code,200)
   code,_=self.fetch('/api/demo/me');self.assertEqual(code,401)
