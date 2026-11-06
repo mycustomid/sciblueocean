@@ -7,3 +7,45 @@
 [data-table="payments"] td{white-space:normal}
 [data-table="payments"] td:first-child{font-family:monospace;font-size:12px}
 @media(max-width:760px){.studio-brand .monogram{width:62px;height:42px}.studio-nav a{min-height:47px}}
+
+/* Print Button in Header */
+.print-button{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);color:#e6f1ef;border:1px solid rgba(255,255,255,0.18);padding:7px 14px;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .18s ease}
+.print-button:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.32);color:#fff}
+.print-button .ui-icon{stroke:#48a9a6}
+
+/* Professional Hotel PMS Print Stylesheet (A4/Letter Optimized) */
+@media print{
+  @page{margin:12mm 15mm;size:A4 portrait}
+  *,*::before,*::after{text-shadow:none!important;box-shadow:none!important}
+  html,body{background:#fff!important;color:#0f172a!important;font-size:10pt!important;line-height:1.4!important;margin:0!important;padding:0!important}
+  .demo-ribbon,.studio-sidebar,.studio-topbar,.heading-buttons,.connection-banner,.studio-toast,dialog,.signout,.refresh-button,.print-button,.cell-action,.sidebar-bottom,[data-dialog],.panel-heading a{display:none!important}
+  .studio-shell{display:block!important}
+  .studio-main{margin:0!important;padding:0!important;width:100%!important}
+  .studio-page{padding:0!important;max-width:100%!important}
+  .studio-page-heading{border-bottom:2px solid #0f172a!important;padding-bottom:10px!important;margin-bottom:18px!important;display:flex!important;justify-content:space-between!important;align-items:flex-end!important}
+  .studio-eyebrow{color:#475569!important;font-size:8.5pt!important;font-weight:700!important;letter-spacing:0.08em!important;text-transform:uppercase!important}
+  .studio-page-heading h1{color:#0f172a!important;font-size:20pt!important;margin:4px 0!important;font-family:Georgia,serif!important}
+  .studio-page-heading p{color:#475569!important;font-size:9.5pt!important;margin:0!important}
+  .metric-grid{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:10px!important;margin-bottom:20px!important}
+  .studio-metric{background:#f8fafc!important;border:1px solid #cbd5e1!important;border-radius:6px!important;padding:10px 12px!important;color:#0f172a!important}
+  .studio-metric span{color:#475569!important;font-size:8pt!important;text-transform:uppercase!important;font-weight:600!important}
+  .studio-metric strong{color:#0f172a!important;font-size:16pt!important;display:block!important;margin-top:3px!important}
+  .studio-metric small{color:#64748b!important;font-size:7.5pt!important}
+  .two-col-dashboard{display:block!important}
+  .studio-panel{background:#fff!important;border:1px solid #cbd5e1!important;border-radius:6px!important;margin-bottom:18px!important;box-shadow:none!important;page-break-inside:avoid}
+  .panel-heading{background:#f1f5f9!important;border-bottom:1px solid #cbd5e1!important;padding:8px 12px!important}
+  .panel-heading h2{color:#0f172a!important;font-size:11.5pt!important;margin:0!important}
+  .panel-heading span{color:#475569!important;font-size:7.5pt!important;text-transform:uppercase!important;font-weight:700!important}
+  .table-scroll{overflow:visible!important}
+  table[data-table]{width:100%!important;border-collapse:collapse!important}
+  table[data-table] th{background:#f8fafc!important;color:#0f172a!important;border-bottom:1.5px solid #94a3b8!important;padding:7px 9px!important;font-size:8.5pt!important;text-align:left!important}
+  table[data-table] td{color:#0f172a!important;border-bottom:1px solid #e2e8f0!important;padding:7px 9px!important;font-size:8.5pt!important}
+  .status-chip{border:1px solid #94a3b8!important;background:#f8fafc!important;color:#0f172a!important;font-weight:600!important;font-size:7.5pt!important;padding:2px 5px!important;border-radius:4px!important}
+  .report-chart{border:1px solid #cbd5e1!important;background:#f8fafc!important;height:160px!important;page-break-inside:avoid}
+  .report-bar{background:#334155!important}
+  .report-bar span{color:#0f172a!important}
+  .workflow-line{border:1px solid #cbd5e1!important;background:#f8fafc!important;display:flex!important;gap:0!important}
+  .workflow-line div{border-right:1px solid #cbd5e1!important;padding:8px!important}
+  .activity-list{padding:8px 12px!important}
+  .activity-row{border-bottom:1px solid #e2e8f0!important;padding:6px 0!important}
+}

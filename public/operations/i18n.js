@@ -30,6 +30,7 @@ const bilingual={
 'Early check-in requires explicit confirmation':['Le check-in anticipé nécessite une confirmation explicite.','Early check-in requires explicit confirmation'],
 'Assigned room is already occupied for early check-in dates':['La chambre assignée est déjà occupée pour les dates anticipées.','Assigned room is already occupied for early check-in dates'],
 'Check-in anticipé enregistré.':['Check-in anticipé enregistré.','Early check-in recorded.'],
+'Imprimer le rapport':['Imprimer le rapport','Print report'],
 'Mandatory taxes, fee schedules, discounts, real studio capacity, and hotel inventory synchronization are NOT enabled by default. These require approved business rules and legal review prior to a real payment launch.':['Les taxes, frais, remises, capacités et synchronisations d’inventaire nécessitent une configuration validée avant tout lancement des paiements.','Taxes, fees, discounts, capacity and inventory synchronization require approved configuration before payments can launch.'],
 'Collected only after visitors explicitly opt in to analytics. No email address, name, guest reference, or phone number is stored with funnel events.':['Les statistiques anonymes ne contiennent ni nom, ni e-mail, ni référence voyageur, ni téléphone.','Anonymous activity excludes names, email addresses, guest references and phone numbers.'],
 };
