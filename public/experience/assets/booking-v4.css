@@ -10,3 +10,17 @@
 @media(max-width:640px){.bo-consent{position:static;margin:16px 10px;max-width:none}}
 
 .transfer-instructions{margin:18px 0;padding:18px;border:1px solid #d7e5dc;border-radius:12px;background:#f4f8f4}.transfer-instructions h3{margin:0 0 10px}.transfer-instructions p{font-size:13px;line-height:1.5}.transfer-instructions [data-copy-account]{margin-left:8px}
+
+/* Clean Official Customer Voucher Print Stylesheet */
+@media print{
+  @page{margin:15mm 18mm;size:A4 portrait}
+  html,body{background:#fff!important;color:#0f172a!important;font-size:10.5pt!important}
+  .topstrip,.header,.desktop-nav,.mobile-nav,.closing,.footer,.help-card,details.locale,.bookmarks,.nav-cta,.staff-access,form[data-booking-lookup]>label,form[data-booking-lookup]>button,form[data-payment-lookup]>label,form[data-payment-lookup]>button,a[href*="wa.me"],a[href*="payment/"],button[data-action="print-customer-voucher"]{display:none!important}
+  main#main,.wrap.form-layout.narrow{margin:0!important;padding:0!important;max-width:100%!important;width:100%!important}
+  .inner-hero{padding:10px 0 18px!important;border-bottom:2px solid #0f172a!important}
+  .inner-hero h1{font-size:22pt!important;color:#0f172a!important}
+  .guest-form{border:1px solid #0f172a!important;border-radius:8px!important;padding:20px!important;background:#fff!important;box-shadow:none!important;margin-top:16px!important}
+  .guest-form h2{display:none!important}
+  [data-form-result]{display:block!important;font-size:11pt!important}
+  [data-form-result] strong{font-size:14pt!important;color:#0f172a!important}
+}

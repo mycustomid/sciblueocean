@@ -112,6 +112,7 @@ if(book){
   ${lang==='fr'?'Envoyer preuve WhatsApp (+62 812-9636-1446)':'Send transfer proof via WhatsApp (+62 812-9636-1446)'}
 </a>
 <button type="button" class="button outline" data-copy="${xss(answer.reference)}">${L.copy}</button>
+<button type="button" class="button outline" data-action="print-customer-voucher" style="display:inline-flex;align-items:center;gap:6px;"><svg class="icon" aria-hidden="true" style="stroke:currentColor;fill:none;width:15px;height:15px;"><use href="/experience/assets/icons.svg#printer"></use></svg>${lang==='fr'?'Imprimer le reçu':'Print voucher'}</button>
 <a class="button outline" href="${url('manage/?reference='+encodeURIComponent(answer.reference)+'&email='+encodeURIComponent(data.email))}" data-track-booking>${lang==='fr'?'Suivre ma demande':'Track my request'}</a>
 </div>`);
      book.dataset.available='submitted';
@@ -136,10 +137,12 @@ const manage=q('[data-booking-lookup]');manage?.addEventListener('submit',async 
   <svg class="icon" aria-hidden="true" style="stroke:currentColor;fill:none;width:18px;height:18px;"><use href="/experience/assets/icons.svg#arrow-up-right"></use></svg>
   ${lang==='fr'?'Envoyer preuve WhatsApp (+62 812-9636-1446)':'Send transfer proof via WhatsApp (+62 812-9636-1446)'}
 </a>
+<button type="button" class="button outline" data-action="print-customer-voucher" style="display:inline-flex;align-items:center;gap:6px;"><svg class="icon" aria-hidden="true" style="stroke:currentColor;fill:none;width:15px;height:15px;"><use href="/experience/assets/icons.svg#printer"></use></svg>${lang==='fr'?'Imprimer le bon de séjour':'Print stay voucher'}</button>
 <a class="button outline" href="${url('payment/')}">${L.payment}</a>
 </div>`);
   }catch(err){result(manage,xss(err.message),true)}
 });
+document.addEventListener('click',e=>{const btn=e.target.closest('[data-action="print-customer-voucher"]');if(btn)window.print();});
 if(manage){
   if(param.has('reference')&&param.has('email')){
     manage.elements.namedItem('reference').value=param.get('reference');

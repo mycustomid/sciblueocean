@@ -13,12 +13,49 @@
 .print-button:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.32);color:#fff}
 .print-button .ui-icon{stroke:#48a9a6}
 
+/* Receipt Button in Tables */
+.receipt-button{background:rgba(13,148,136,0.12)!important;color:#0d9488!important;border:1px solid rgba(13,148,136,0.35)!important;padding:4px 8px!important;border-radius:4px!important;font-size:11.5px!important;font-weight:600!important;cursor:pointer!important;display:inline-flex!important;align-items:center!important;gap:4px!important;margin-left:4px!important}
+.receipt-button:hover{background:#0d9488!important;color:#fff!important}
+.receipt-button .ui-icon{stroke:currentColor}
+
+/* Printable Receipt Card Styles */
+.printable-receipt{background:#fff;color:#0f172a;border-radius:8px;padding:16px 20px}
+.printable-receipt img{max-height:48px;width:auto}
+
 /* Professional Hotel PMS Print Stylesheet (A4/Letter Optimized) */
 @media print{
   @page{margin:12mm 15mm;size:A4 portrait}
   *,*::before,*::after{text-shadow:none!important;box-shadow:none!important}
   html,body{background:#fff!important;color:#0f172a!important;font-size:10pt!important;line-height:1.4!important;margin:0!important;padding:0!important}
-  .demo-ribbon,.studio-sidebar,.studio-topbar,.heading-buttons,.connection-banner,.studio-toast,dialog,.signout,.refresh-button,.print-button,.cell-action,.sidebar-bottom,[data-dialog],.panel-heading a{display:none!important}
+  
+  /* Normal Page Print Mode */
+  body:not(.printing-receipt) .demo-ribbon,
+  body:not(.printing-receipt) .studio-sidebar,
+  body:not(.printing-receipt) .studio-topbar,
+  body:not(.printing-receipt) .heading-buttons,
+  body:not(.printing-receipt) .connection-banner,
+  body:not(.printing-receipt) .studio-toast,
+  body:not(.printing-receipt) dialog,
+  body:not(.printing-receipt) .signout,
+  body:not(.printing-receipt) .refresh-button,
+  body:not(.printing-receipt) .print-button,
+  body:not(.printing-receipt) .cell-action,
+  body:not(.printing-receipt) .sidebar-bottom,
+  body:not(.printing-receipt) [data-dialog],
+  body:not(.printing-receipt) .panel-heading a{display:none!important}
+
+  /* Specific Receipt Print Mode */
+  body.printing-receipt .studio-shell,
+  body.printing-receipt .studio-main,
+  body.printing-receipt .studio-page,
+  body.printing-receipt .demo-ribbon{display:none!important}
+  body.printing-receipt dialog,
+  body.printing-receipt [data-dialog]{display:block!important;position:static!important;border:none!important;padding:0!important;margin:0!important;width:100%!important;max-width:100%!important;box-shadow:none!important;background:#fff!important}
+  body.printing-receipt .dialog-top,
+  body.printing-receipt .receipt-print-actions,
+  body.printing-receipt [data-dialog-close]{display:none!important}
+  body.printing-receipt .printable-receipt{display:block!important;width:100%!important;padding:0!important;border:none!important}
+
   .studio-shell{display:block!important}
   .studio-main{margin:0!important;padding:0!important;width:100%!important}
   .studio-page{padding:0!important;max-width:100%!important}
